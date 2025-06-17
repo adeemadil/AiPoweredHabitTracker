@@ -45,6 +45,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-node-
 
+      - name: Debug Secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" | grep -o ".*=.*"
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" | grep -o ".*=.*"
+          echo "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" | grep -o ".*=.*"
+        shell: bash
+
       # Install dependencies
       - name: Install dependencies
         run: npm ci --silent
