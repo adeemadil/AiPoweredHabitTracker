@@ -54,7 +54,7 @@ jobs:
 
       # Install dependencies
       - name: Install dependencies
-        run: npm ci --silent
+        run: npm install --legacy-peer-deps --silent
 
       # Generate Prisma client
       - name: Generate Prisma client
