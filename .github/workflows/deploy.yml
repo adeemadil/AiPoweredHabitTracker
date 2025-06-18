@@ -60,6 +60,10 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      # Ensure migrations directory exists
+      - name: Ensure migrations directory exists
+        run: mkdir -p prisma/migrations/0001_init
+
       # Baseline the database
       - name: Baseline the database
         run: npx prisma migrate diff \
