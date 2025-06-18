@@ -22,6 +22,8 @@ const config: Config = {
           800: "#075985",
           900: "#0c4a6e",
         },
+        background: "hsl(var(--background) / <alpha-value>)",
+        foreground: "hsl(var(--foreground) / <alpha-value>)",
       },
     },
   },
