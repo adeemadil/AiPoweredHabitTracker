@@ -1,5 +1,6 @@
+"use client";
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc/client";
 import { format } from "date-fns";
 
 interface HabitCardProps {
@@ -16,9 +17,9 @@ export default function HabitCard({ habit }: HabitCardProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const utils = trpc.useUtils();
 
-  const { mutate: completeHabit } = trpc.habits.complete.useMutation({
+  const { mutate: completeHabit } = trpc.habitTracker.complete.useMutation({
     onSuccess: () => {
-      utils.habits.list.invalidate();
+      utils.habitTracker.list.invalidate();
     },
   });
 

@@ -1,9 +1,12 @@
 import { z } from "zod";
-import { router, protectedProcedure } from "../trpc";
+import { router, protectedProcedure } from "../../trpc-base";
 import { TRPCError } from "@trpc/server";
 
 export const habitsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
+    // Ensure user exists in database
+    await ensureUserExists(ctx.userId, ctx.prisma);
+    
     const habits = await ctx.prisma.habit.findMany({
       where: { userId: ctx.userId },
       include: {
@@ -30,6 +33,9 @@ export const habitsRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Ensure user exists in database
+      await ensureUserExists(ctx.userId, ctx.prisma);
+      
       return ctx.prisma.habit.create({
         data: {
           ...input,
@@ -63,6 +69,22 @@ export const habitsRouter = router({
       });
     }),
 });
+
+// Helper function to ensure user exists in database
+async function ensureUserExists(userId: string, prisma: any) {
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!existingUser) {
+    await prisma.user.create({
+      data: {
+        id: userId,
+        email: `user-${userId}@example.com`, // Placeholder email
+      },
+    });
+  }
+}
 
 function calculateStreak(completions: { date: Date }[]) {
   if (!completions.length) return 0;

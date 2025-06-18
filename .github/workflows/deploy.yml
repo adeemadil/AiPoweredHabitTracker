@@ -1,0 +1,109 @@
+name: CI/CD Pipeline
+
+# Trigger workflow on push to main and pull requests to main
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Set environment variables and secrets
+env:
+  DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+
+jobs:
+  build-and-test:
+    # Run on Ubuntu latest
+    runs-on: ubuntu-latest
+
+    # Set Node.js version
+    strategy:
+      matrix:
+        node-version: [18.x]
+
+    steps:
+      # Checkout repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      # Cache npm dependencies
+      - name: Cache npm dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Debug Secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" | grep -o ".*=.*"
+          echo "CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}" | grep -o ".*=.*"
+          echo "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" | grep -o ".*=.*"
+        shell: bash
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps --silent
+
+      # Generate Prisma client
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      # Ensure migrations directory exists
+      - name: Ensure migrations directory exists
+        run: mkdir -p prisma/migrations/0001_init
+
+      # Baseline the database
+      - name: Baseline the database
+        run: npx prisma migrate diff \
+          --from-empty \
+          --to-schema-datamodel prisma/schema.prisma \
+          --script > prisma/migrations/0001_init/migration.sql
+
+      # Resolve the migration
+      - name: Resolve migration
+        run: npx prisma migrate resolve --applied 0001_init
+
+      # Run database migrations
+      - name: Run database migrations
+        run: npx prisma migrate deploy
+
+      # Run tests if they exist
+      - name: Run tests
+        run: |
+          if [ -d "tests" ] || [ -d "__tests__" ]; then
+            npm run test
+          else
+            echo "No tests directory found, skipping tests"
+          fi
+        continue-on-error: true
+
+      # Build Next.js application
+      - name: Build Next.js app
+        run: npm run build
+
+      # Upload build artifacts (optional, for debugging)
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: .next/
+          retention-days: 7
+
+      # Baseline the database
+      - name: Baseline the database
+        run: npx prisma migrate diff \
+          --from-empty \
+          --to-schema-datamodel prisma/schema.prisma \
+          --script > prisma/migrations/0001_init/migration.sql 

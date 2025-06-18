@@ -4,7 +4,7 @@ import superjson from "superjson";
 import { ZodError } from "zod";
 import { prisma } from "./prisma";
 
-const t = initTRPC.create({
+const t = initTRPC.context<{ req: any; prisma: typeof prisma }>().create({
   transformer: superjson,
   errorFormatter({ shape, error }) {
     return {
@@ -18,8 +18,8 @@ const t = initTRPC.create({
   },
 });
 
-const isAuthed = t.middleware(async ({ next }) => {
-  const { userId } = getAuth();
+const isAuthed = t.middleware(async ({ next, ctx }) => {
+  const { userId } = getAuth(ctx.req);
 
   if (!userId) {
     throw new TRPCError({

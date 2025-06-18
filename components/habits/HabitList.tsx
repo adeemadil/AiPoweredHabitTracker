@@ -1,9 +1,10 @@
+"use client";
 import { useQuery } from "@tanstack/react-query";
-import { trpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc/client";
 import HabitCard from "./HabitCard";
 
 export default function HabitList() {
-  const { data: habits, isLoading } = trpc.habits.list.useQuery();
+  const { data: habits, isLoading } = trpc.habitTracker.list.useQuery();
 
   if (isLoading) {
     return (
@@ -28,7 +29,7 @@ export default function HabitList() {
 
   return (
     <div className="grid gap-4">
-      {habits.map((habit) => (
+      {habits.map((habit: any) => (
         <HabitCard key={habit.id} habit={habit} />
       ))}
     </div>

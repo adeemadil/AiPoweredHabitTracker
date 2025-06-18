@@ -1,5 +1,7 @@
+"use client";
+
 import { useState } from "react";
-import { trpc } from "@/lib/trpc";
+import { trpc } from "@/lib/trpc/client";
 import { z } from "zod";
 
 const habitSchema = z.object({
@@ -15,14 +17,14 @@ export default function AddHabitForm() {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { mutate: createHabit, isLoading } = trpc.habits.create.useMutation({
+  const { mutate: createHabit, isLoading } = trpc.habitTracker.create.useMutation({
     onSuccess: () => {
       setName("");
       setEmoji("");
       setFrequency("daily");
-      utils.habits.list.invalidate();
+      utils.habitTracker.list.invalidate();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       setError(error.message);
     },
   });
