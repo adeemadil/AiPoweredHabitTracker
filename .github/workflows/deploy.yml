@@ -60,6 +60,17 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
+      # Baseline the database
+      - name: Baseline the database
+        run: npx prisma migrate diff \
+          --from-empty \
+          --to-schema-datamodel prisma/schema.prisma \
+          --script > prisma/migrations/0001_init/migration.sql
+
+      # Resolve the migration
+      - name: Resolve migration
+        run: npx prisma migrate resolve --applied 0001_init
+
       # Run database migrations
       - name: Run database migrations
         run: npx prisma migrate deploy
@@ -84,4 +95,11 @@ jobs:
         with:
           name: build-artifacts
           path: .next/
-          retention-days: 7 
+          retention-days: 7
+
+      # Baseline the database
+      - name: Baseline the database
+        run: npx prisma migrate diff \
+          --from-empty \
+          --to-schema-datamodel prisma/schema.prisma \
+          --script > prisma/migrations/0001_init/migration.sql 
