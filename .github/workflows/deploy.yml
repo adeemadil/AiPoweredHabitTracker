@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 # Trigger workflow on push to main and pull requests to main
 on:
@@ -7,17 +7,16 @@ on:
   pull_request:
     branches: [ main ]
 
-# Set environment variables and secrets
-env:
-  DATABASE_URL: ${{ secrets.DATABASE_URL }}
-  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-  NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-
 jobs:
-  build-and-test:
-    # Run on Ubuntu latest
+  test-and-build:
     runs-on: ubuntu-latest
+    environment: ${{ github.event_name == 'push' && 'Production' || 'Test' }}
+
+    env:
+      DATABASE_URL: ${{ github.event_name == 'push' && secrets.DATABASE_URL || secrets.DATABASE_URL }}
+      OPENAI_API_KEY: ${{ github.event_name == 'push' && secrets.OPENAI_API_KEY || secrets.OPENAI_API_KEY }}
+      CLERK_SECRET_KEY: ${{ github.event_name == 'push' && secrets.CLERK_SECRET_KEY || secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ github.event_name == 'push' && secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
     steps:
       # Checkout repository
@@ -25,10 +24,10 @@ jobs:
         uses: actions/checkout@v4
 
       # Setup Node.js
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 18.x
           cache: 'npm'
 
       # Cache npm dependencies
