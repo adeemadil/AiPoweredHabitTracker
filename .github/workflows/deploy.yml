@@ -60,22 +60,7 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Ensure migrations directory exists
-      - name: Ensure migrations directory exists
-        run: mkdir -p prisma/migrations/0001_init
-
-      # Baseline the database
-      - name: Baseline the database
-        run: npx prisma migrate diff \
-          --from-empty \
-          --to-schema-datamodel prisma/schema.prisma \
-          --script > prisma/migrations/0001_init/migration.sql
-
-      # Resolve the migration
-      - name: Resolve migration
-        run: npx prisma migrate resolve --applied 0001_init
-
-      # Run database migrations
+      # Run database migrations (this is all you need after baseline is committed)
       - name: Run database migrations
         run: npx prisma migrate deploy
 
@@ -99,11 +84,4 @@ jobs:
         with:
           name: build-artifacts
           path: .next/
-          retention-days: 7
-
-      # Baseline the database
-      - name: Baseline the database
-        run: npx prisma migrate diff \
-          --from-empty \
-          --to-schema-datamodel prisma/schema.prisma \
-          --script > prisma/migrations/0001_init/migration.sql 
+          retention-days: 7 
