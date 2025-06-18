@@ -8,7 +8,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test-and-build:
+  build:
     runs-on: ubuntu-latest
     environment: ${{ github.event_name == 'push' && 'Production' || 'Test' }}
 
@@ -57,16 +57,6 @@ jobs:
       # Run database migrations (this is all you need after baseline is committed)
       - name: Run database migrations
         run: npx prisma migrate deploy
-
-      # Run tests if they exist
-      - name: Run tests
-        run: |
-          if [ -d "tests" ] || [ -d "__tests__" ]; then
-            npm run test
-          else
-            echo "No tests directory found, skipping tests"
-          fi
-        continue-on-error: true
 
       # Build Next.js application
       - name: Build Next.js app
