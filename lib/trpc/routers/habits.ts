@@ -17,7 +17,7 @@ export const habitsRouter = router({
       },
     });
 
-    return habits.map((habit) => ({
+    return habits.map((habit: any) => ({
       ...habit,
       streak: calculateStreak(habit.completions),
       lastCompleted: habit.completions[0]?.date || null,
@@ -86,7 +86,7 @@ async function ensureUserExists(userId: string, prisma: any) {
   }
 }
 
-function calculateStreak(completions: { date: Date }[]) {
+export function calculateStreak(completions: { date: Date }[]) {
   if (!completions.length) return 0;
 
   const today = new Date();
