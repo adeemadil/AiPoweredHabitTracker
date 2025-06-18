@@ -19,11 +19,6 @@ jobs:
     # Run on Ubuntu latest
     runs-on: ubuntu-latest
 
-    # Set Node.js version
-    strategy:
-      matrix:
-        node-version: [18.x]
-
     steps:
       # Checkout repository
       - name: Checkout code
