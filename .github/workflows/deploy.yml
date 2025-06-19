@@ -8,76 +8,24 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
-    
-    # Set environment based on branch and event type
-    environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'Production' || 'Test' }}
-    
-    env:
-      # Same secret keys for both environments - GitHub Environments handle the different values
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-
+    # Only run for PRs
+    if: github.event_name == 'pull_request'
     steps:
-      # Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
           cache: 'npm'
-
-      # Cache npm dependencies
-      - name: Cache npm dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
-
-      # Debug environment info
-      - name: Debug Environment Info
-        run: |
-          echo "Branch: ${{ github.ref }}"
-          echo "Event: ${{ github.event_name }}"
-          echo "Environment: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'Production' || 'Test' }}"
-
-      # Install dependencies
       - name: Install dependencies
         run: npm install --legacy-peer-deps --silent
-
-      # Generate Prisma client
       - name: Generate Prisma client
         run: npx prisma generate
-
-      # Run database migrations
       - name: Run database migrations
         run: npx prisma migrate deploy
-
-      # Build Next.js application
       - name: Build Next.js app
         run: npm run build
-
-      # Upload build artifacts
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ github.ref_name }}
-          path: .next/
-          retention-days: ${{ github.ref == 'refs/heads/main' && 30 || 7 }}
-
-      # Notify deployment status
-      - name: Deployment Summary
-        run: |
-          echo "## Deployment Summary 🚀" >> $GITHUB_STEP_SUMMARY
-          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Environment**: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/main') && 'Production' || 'Test' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status**: ✅ Build Successful" >> $GITHUB_STEP_SUMMARY
+      # Add test steps here if you have them
