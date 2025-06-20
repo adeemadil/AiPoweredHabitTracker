@@ -10,12 +10,7 @@ jobs:
   build-and-test:
     name: build-and-test
     runs-on: ubuntu-latest
-    env:
-      # Use real secrets for push events, dummy for PRs
-      DATABASE_URL: ${{ secrets.DATABASE_URL}}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+    environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'production' || 'preview' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
