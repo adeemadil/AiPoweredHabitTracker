@@ -1,9 +1,11 @@
 name: PR Preview Deployments
 
 on:
+  push:
+    branches: [ main, dev ]
   pull_request:
-    branches: [main, dev]
-    types: [opened, synchronize, closed]
+    branches:  [main, dev ]
+    types: [ opened, synchronize, closed ]
 
 env:
   VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
@@ -12,6 +14,7 @@ env:
   
 jobs:
   preview:
+    name: preview-vercel-build
     runs-on: ubuntu-latest
     if: github.event.action != 'closed'
     steps:
@@ -48,6 +51,7 @@ jobs:
           message: "Preview ready: ${{ steps.deploy.outputs.VERCEL_URL }}"
 
   cleanup:
+    name: cleanup-vercel-build
     runs-on: ubuntu-latest
     if: github.event.action == 'closed'
     steps:
