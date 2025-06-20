@@ -35,7 +35,7 @@ jobs:
           
           vercel deploy --prebuilt --token "$VERCEL_TOKEN" \
             --scope "$VERCEL_TEAM_ID" \
-            --confirm \
+            --yes \
             --prod=false \
             --meta branch="$BRANCH"
           
