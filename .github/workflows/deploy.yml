@@ -30,7 +30,16 @@ jobs:
       - name: Run database migrations
         if: github.event_name == 'push'
         run: npx prisma migrate deploy
+      - name: Check for changes in UI or backend
+        id: changes
+        run: |
+          if git diff HEAD^ HEAD --quiet -- ./components/ui ./lib; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
       - name: Build Next.js app
+        if: steps.changes.outputs.changed == 'true'
         run: npm run build
       # Add test steps here if you have them
       - name: Run tests
