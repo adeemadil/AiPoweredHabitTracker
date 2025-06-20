@@ -42,7 +42,6 @@ jobs:
           echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
 
       - name: Run DB migrations
-        if: github.event_name == 'push'
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         run: npx prisma migrate deploy
