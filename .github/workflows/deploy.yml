@@ -41,10 +41,15 @@ jobs:
           # Set it as action-level env for future steps
           echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
 
+      - name: Set DATABASE_URL into environment
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+        
       - name: Run DB migrations
         env:
           DATABASE_URL: ${{ env.DATABASE_URL }}
         run: npx prisma migrate deploy
+        
 
       - name: Check for UI/backend changes
         id: changes
