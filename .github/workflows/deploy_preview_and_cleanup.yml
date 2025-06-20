@@ -1,0 +1,61 @@
+name: PR Preview Deployments
+
+on:
+  pull_request:
+    branches: [main, dev]
+    types: [opened, synchronize, closed]
+
+env:
+  VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+  VERCEL_TEAM_ID: ${{ secrets.VERCEL_ORG_ID }} # alias for team/org
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    if: github.event.action != 'closed'
+    steps:
+      - uses: actions/checkout@v3
+        with: 
+            fetch-depth: 2
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+      - name: Deploy to Vercel Preview
+        id: deploy
+        run: |
+          BRANCH=${GITHUB_HEAD_REF}
+          SLUG=$(echo "$BRANCH" | tr '/_' '--')
+          URL="https://${SLUG}-${VERCEL_PROJECT_ID}.vercel.app"
+          
+          vercel deploy --prebuilt --token "$VERCEL_TOKEN" \
+            --scope "$VERCEL_TEAM_ID" \
+            --confirm \
+            --prod=false \
+            --meta branch="$BRANCH"
+          
+          echo "VERCEL_URL=$URL" >> "$GITHUB_OUTPUT"
+      - name: Comment Preview URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: "✅ Vercel Preview"
+          message: "Preview ready: ${{ steps.deploy.outputs.VERCEL_URL }}"
+
+  cleanup:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+      - name: Delete Vercel Preview Deployment
+        run: |
+          BRANCH=${GITHUB_HEAD_REF}
+          SLUG=$(echo "$BRANCH" | tr '/_' '--')
+          URL="https://${SLUG}-${VERCEL_PROJECT_ID}.vercel.app"
+          vercel remove "$URL" --yes --token "$VERCEL_TOKEN" --scope "$VERCEL_TEAM_ID"
