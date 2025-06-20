@@ -10,7 +10,7 @@ jobs:
   build-and-test:
     name: build-and-test
     runs-on: ubuntu-latest
-    environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'production' || 'preview' }}
+    environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'Production' || 'Preview' }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
