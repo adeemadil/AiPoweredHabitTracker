@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'Production' || 'Preview' }}
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -25,31 +28,9 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      - name: Determine environment context
-        id: env-context
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" || "${{ github.base_ref }}" == "main" ]]; then
-            echo "ENV_NAME=Production" >> $GITHUB_ENV
-          else
-            echo "ENV_NAME=Preview" >> $GITHUB_ENV
-          fi
-
-      - name: Load DATABASE_URL from Github Environment
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-        run: |
-          # Set it as action-level env for future steps
-          echo "DATABASE_URL=$DATABASE_URL" >> $GITHUB_ENV
-
-      - name: Set DATABASE_URL into environment
-        run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-        
-      - name: Run DB migrations
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
+      - name: Run database migrations
+        if: github.event_name == 'push'
         run: npx prisma migrate deploy
-        
 
       - name: Check for UI/backend changes
         id: changes
@@ -63,11 +44,4 @@ jobs:
 
       - name: Build Next.js
         if: steps.changes.outputs.changed == 'true'
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
         run: npm run build
-
-      - name: Run tests
-        env:
-          DATABASE_URL: ${{ env.DATABASE_URL }}
-        run: echo "No tests defined yet"
