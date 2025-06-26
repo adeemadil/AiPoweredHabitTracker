@@ -68,6 +68,87 @@ export const habitsRouter = router({
         },
       });
     }),
+
+  // Send a cheer for a habit
+  sendCheer: protectedProcedure
+    .input(
+      z.object({
+        habitId: z.string(),
+        receiverId: z.string(),
+        message: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Ensure the habit exists and belongs to the receiver
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId, userId: input.receiverId },
+      });
+
+      if (!habit) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Habit not found or does not belong to the receiver.",
+        });
+      }
+
+      // Ensure sender and receiver are friends
+      const friendship = await ctx.prisma.friendship.findFirst({
+        where: {
+          OR: [
+            { userId: ctx.userId, friendId: input.receiverId, status: "accepted" },
+            { userId: input.receiverId, friendId: ctx.userId, status: "accepted" },
+          ],
+        },
+      });
+
+      if (!friendship) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only send cheers to friends.",
+        });
+      }
+
+      if (ctx.userId === input.receiverId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot send a cheer to yourself.",
+        });
+      }
+
+      return ctx.prisma.cheer.create({
+        data: {
+          senderId: ctx.userId,
+          receiverId: input.receiverId,
+          habitId: input.habitId,
+          message: input.message,
+        },
+      });
+    }),
+
+  // List cheers for a habit
+  listCheers: protectedProcedure
+    .input(z.object({ habitId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Ensure the habit exists and belongs to the current user
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId, userId: ctx.userId },
+      });
+
+      if (!habit) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Habit not found.",
+        });
+      }
+
+      return ctx.prisma.cheer.findMany({
+        where: { habitId: input.habitId },
+        include: {
+          sender: { select: { id: true, email: true } }, // Assuming email is available
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
 });
 
 // Helper function to ensure user exists in database
