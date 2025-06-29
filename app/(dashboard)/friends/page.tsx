@@ -109,7 +109,7 @@ export default function FriendsPage() {
           <p>Loading requests...</p>
         ) : pendingRequests && pendingRequests.length > 0 ? (
           <ul>
-            {pendingRequests.map((req) => (
+            {pendingRequests.map((req: { id: string; user: { id: string; email: string } }) => (
               <li key={req.id} className="flex justify-between items-center mb-2 p-2 border-b">
                 <span>{req.user.email} wants to be your friend.</span>
                 <div>
@@ -135,7 +135,7 @@ export default function FriendsPage() {
           <p>Loading friends...</p>
         ) : friends && friends.length > 0 ? (
           <ul>
-            {friends.map((friend) => (
+            {friends.map((friend: { friendshipId: string; friendEmail: string }) => (
               <li key={friend.friendshipId} className="flex justify-between items-center mb-2 p-2 border-b">
                 <span>{friend.friendEmail}</span>
                 <button onClick={() => handleRemoveFriend(friend.friendshipId)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded">
