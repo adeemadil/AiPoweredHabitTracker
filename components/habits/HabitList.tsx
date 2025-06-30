@@ -1,5 +1,4 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc/init";
 import HabitCard from "./HabitCard";
 
@@ -30,7 +29,10 @@ function setCachedHabits(data: any) {
 }
 
 export default function HabitList() {
-  const { data: habits, isLoading } = trpc.habitTracker.list.useQuery();
+  const { data: habits, isLoading } = trpc.habitTracker.list.useQuery(undefined, {
+    onSuccess: (data) => setCachedHabits(data),
+    initialData: getCachedHabits() || undefined,
+  });
 
   if (isLoading) {
     return (
@@ -47,8 +49,32 @@ export default function HabitList() {
 
   if (!habits?.length) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-        No habits yet. Add your first habit above!
+      <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+        {/* Minimal illustration: plant/seedling SVG */}
+        <svg
+          width="64"
+          height="64"
+          fill="none"
+          viewBox="0 0 64 64"
+          aria-hidden="true"
+          className="mb-4"
+        >
+          <circle cx="32" cy="32" r="32" fill="#E0F2FE" />
+          <path
+            d="M32 44c6-8 12-12 12-20a12 12 0 10-24 0c0 8 6 12 12 20z"
+            fill="#38BDF8"
+          />
+          <ellipse
+            cx="32"
+            cy="44"
+            rx="6"
+            ry="2"
+            fill="#0284C7"
+            opacity="0.3"
+          />
+        </svg>
+        <div className="text-lg font-medium mb-2">No habits yet.</div>
+        <div className="text-base">Add your first habit to get started!</div>
       </div>
     );
   }
