@@ -76,7 +76,7 @@ export default function CheersModal({
               }
               title={
                 disableSendCheer
-                  ? "You can't send cheers to yourself!"
+                  ? "You can&apos;t send cheers to yourself!"
                   : "Send a cheer"
               }
             >
@@ -88,7 +88,7 @@ export default function CheersModal({
           </div>
           {disableSendCheer && (
             <div className="text-xs text-red-500 mt-2">
-              You can't send cheers to yourself.
+              You can&apos;t send cheers to yourself.
             </div>
           )}
         </div>

@@ -52,7 +52,7 @@ export default function PendingRequestsList({
         </ul>
       ) : (
         <div className="text-gray-500 text-center py-4">
-          No pending friend requests. You're all caught up!
+          No pending friend requests. You&apos;re all caught up!
         </div>
       )}
     </div>

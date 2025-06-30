@@ -25,15 +25,15 @@ export default function AddFriendForm({
       <h2 className="text-xl font-semibold mb-4">Add a Friend</h2>
       <div className="flex gap-2 items-center">
         <Label htmlFor="friend-email" className="sr-only">
-          Friend's email
+          Friend&apos;s email
         </Label>
         <Input
           id="friend-email"
           type="email"
           value={value}
           onChange={onChange}
-          placeholder="Enter friend's email"
-          aria-label="Friend's email"
+          placeholder="Enter friend&apos;s email"
+          aria-label="Friend&apos;s email"
           required
         />
         <Button type="submit" disabled={loading}>
