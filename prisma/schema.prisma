@@ -16,6 +16,11 @@ model User {
   habits        Habit[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  friendships Friendship[] @relation("userFriendships")
+  friends     Friendship[] @relation("friendFriendships")
+  cheersSent  Cheer[]      @relation("sentCheers")
+  cheersReceived Cheer[]   @relation("receivedCheers")
+  notifications Notification[] @relation("userNotifications")
 }
 
 model Habit {
@@ -26,6 +31,7 @@ model Habit {
   userId      String
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   completions HabitCompletion[]
+  cheers      Cheer[] // Added relation to Cheer model
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -41,4 +47,49 @@ model HabitCompletion {
 
   @@unique([habitId, date])
   @@index([habitId])
-} 
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("userFriendships", fields: [userId], references: [id], onDelete: Cascade)
+  friendId  String
+  friend    User     @relation("friendFriendships", fields: [friendId], references: [id], onDelete: Cascade)
+  status    String   // "pending", "accepted", "declined"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, friendId])
+  @@index([userId])
+  @@index([friendId])
+}
+
+model Cheer {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("sentCheers", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User     @relation("receivedCheers", fields: [receiverId], references: [id], onDelete: Cascade)
+  habitId    String
+  habit      Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  message    String?
+  createdAt  DateTime @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([habitId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // Recipient of the notification
+  user      User     @relation("userNotifications", fields: [userId], references: [id], onDelete: Cascade)
+  type      String   // e.g., "FRIEND_REQUEST", "REQUEST_ACCEPTED", "NEW_CHEER"
+  message   String
+  isRead    Boolean  @default(false)
+  relatedEntityId String? // Optional: ID of the entity related to the notification (e.g., Friendship ID, Cheer ID)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
