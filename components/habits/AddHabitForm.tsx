@@ -21,7 +21,7 @@ export default function AddHabitForm() {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { mutate: createHabit, isLoading } =
+  const { mutate: createHabit, status } =
     trpc.habitTracker.create.useMutation({
       onSuccess: () => {
         setName("");
@@ -97,10 +97,10 @@ export default function AddHabitForm() {
 
       <Button
         type="submit"
-        disabled={!isFormValid || isLoading}
-        className={`w-full transition-opacity duration-200 ${!isFormValid || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        disabled={!isFormValid || status === "loading"}
+        className={`w-full transition-opacity duration-200 ${!isFormValid || status === "loading" ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        {isLoading ? <Spinner className="w-5 h-5" /> : "Add Habit"}
+        {status === "loading" ? <Spinner className="w-5 h-5" /> : "Add Habit"}
       </Button>
     </form>
   );

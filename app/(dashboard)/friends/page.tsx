@@ -93,7 +93,7 @@ export default function FriendsPage() {
         value={friendEmail}
         onChange={(e) => setFriendEmail(e.target.value)}
         onSubmit={handleSendRequest}
-        loading={sendFriendRequestMutation.isLoading}
+        loading={sendFriendRequestMutation.status === "loading"}
       />
 
       {/* Pending Friend Requests (atomic) */}

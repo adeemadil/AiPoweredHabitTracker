@@ -36,9 +36,27 @@ export const habitsRouter = router({
       // Ensure user exists in database
       await ensureUserExists(ctx.userId, ctx.prisma);
 
+      // Trim whitespace from name
+      const trimmedName = input.name.trim();
+
+      // Check for duplicate habit name (case-insensitive, trimmed)
+      const existing = await ctx.prisma.habit.findFirst({
+        where: {
+          userId: ctx.userId,
+          name: { equals: trimmedName, mode: "insensitive" },
+        },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "You already have a habit with this name.",
+        });
+      }
+
       return ctx.prisma.habit.create({
         data: {
           ...input,
+          name: trimmedName,
           userId: ctx.userId,
         },
       });
@@ -156,6 +174,35 @@ export const habitsRouter = router({
         },
         orderBy: { createdAt: "desc" },
       });
+    }),
+
+  // Delete a single habit
+  delete: protectedProcedure
+    .input(z.object({ habitId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Only allow deleting own habit
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId },
+      });
+      if (!habit || habit.userId !== ctx.userId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Habit not found" });
+      }
+      await ctx.prisma.habit.delete({ where: { id: input.habitId } });
+      return { success: true };
+    }),
+
+  // Bulk delete habits
+  deleteMany: protectedProcedure
+    .input(z.object({ habitIds: z.array(z.string().min(1)) }))
+    .mutation(async ({ ctx, input }) => {
+      // Only allow deleting own habits
+      await ctx.prisma.habit.deleteMany({
+        where: {
+          id: { in: input.habitIds },
+          userId: ctx.userId,
+        },
+      });
+      return { success: true };
     }),
 });
 
