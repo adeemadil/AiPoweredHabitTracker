@@ -49,7 +49,7 @@ export default function HabitList() {
 
   if (!habits?.length) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-gray-500 dark:text-gray-400">
+      <div className="flex flex-1 flex-col items-center justify-center min-h-[40vh] text-gray-500 dark:text-gray-400">
         {/* Minimal illustration: plant/seedling SVG */}
         <svg
           width="64"

@@ -15,17 +15,15 @@ export default async function HabitsPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center gap-3 mb-2">
         <span className="bg-primary-100 dark:bg-primary-800 p-2 rounded-full">
-          <ListChecks className="w-7 h-7 text-primary-600 dark:text-primary-300" />
+          <ListChecks className="w-8 h-8 text-primary-600 dark:text-primary-300" />
         </span>
-        <h1 className="text-3xl font-bold">My Habits</h1>
+        <h1 className="text-4xl font-extrabold tracking-tight text-primary-700 dark:text-primary-300 drop-shadow-sm">My Habits</h1>
       </div>
-      <div className="text-gray-500 mb-8 ml-1">
-        Track your progress and build new routines
+      <div className="text-lg text-primary-500 dark:text-primary-200 mb-8 ml-1 font-medium animate-fade-in">
+        Track your progress and build new routines. Every small step counts!
       </div>
       <div className="grid gap-8">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-          <AddHabitForm />
-        </div>
+        <AddHabitForm />
         <HabitList />
       </div>
     </div>
