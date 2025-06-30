@@ -45,3 +45,42 @@ jobs:
       - name: Build Next.js
         if: steps.changes.outputs.changed == 'true'
         run: npm run build
+
+      # 7. Run Vitest unit tests (only if test files exist)
+      - name: Run Vitest unit tests
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          CLERK_SECRET_KEY: test_secret_key
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: test_publishable_key
+        run: |
+          # Only run if there are .test or .spec files in __tests__
+          if ls __tests__/*.{test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npm run test
+          else
+            echo "No unit test files found in __tests__, skipping Vitest."
+          fi
+
+      # 8. Install Playwright browsers (only if Playwright test files exist)
+      - name: Install Playwright Browsers
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Only run if there are Playwright test files in __tests__
+          if ls __tests__/*.{e2e,test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npx playwright install --with-deps
+          else
+            echo "No Playwright test files found in __tests__, skipping browser install."
+          fi
+
+      # 9. Run Playwright E2E tests (only if Playwright test files exist)
+      - name: Run Playwright E2E tests
+        if: steps.changes.outputs.changed == 'true'
+        env:
+          CLERK_SECRET_KEY: test_secret_key
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: test_publishable_key
+        run: |
+          # Only run if there are Playwright test files in __tests__
+          if ls __tests__/*.{e2e,test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npm run test:e2e
+          else
+            echo "No Playwright E2E test files found in __tests__, skipping Playwright tests."
+          fi
