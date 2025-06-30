@@ -1,7 +1,7 @@
-import { ClerkProvider } from "@clerk/nextjs";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { TRPCProvider } from "@/components/TRPCProvider";
+import { Providers } from "./providers";
+import SidebarNav from "@/components/SidebarNav";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,12 +16,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          <TRPCProvider>{children}</TRPCProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={inter.className}>
+        {/* Providers wraps Clerk, tRPC, and QueryClient providers */}
+        <Providers>
+          <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+            <SidebarNav />
+            <main className="flex-1 p-6">{children}</main>
+          </div>
+        </Providers>
+      </body>
+    </html>
   );
-} 
+}

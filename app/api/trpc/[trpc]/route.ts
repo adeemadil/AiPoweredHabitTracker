@@ -10,4 +10,4 @@ const handler = (req: Request) =>
     createContext: () => ({ req: req as any, prisma }),
   });
 
-export { handler as GET, handler as POST }; 
+export { handler as GET, handler as POST };

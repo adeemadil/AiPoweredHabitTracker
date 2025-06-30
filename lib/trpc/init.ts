@@ -1,6 +1,5 @@
-// Deprecated: Use trpc from '@/lib/trpc/init' instead.
-
 import { createTRPCReact } from "@trpc/react-query";
-import { type AppRouter } from "./server";
+import type { AppRouter } from "@/lib/trpc/server";
 
+// tRPC React client for the app
 export const trpc = createTRPCReact<AppRouter>();

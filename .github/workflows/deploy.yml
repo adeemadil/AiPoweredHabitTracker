@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
@@ -12,6 +12,9 @@ jobs:
     environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'Production' || 'Preview' }}
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -20,10 +23,16 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'npm'
+          cache: "npm"
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps --silent
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npm run format -- --check
 
       - name: Generate Prisma client
         run: npx prisma generate
@@ -49,9 +58,6 @@ jobs:
       # 7. Run Vitest unit tests (only if test files exist)
       - name: Run Vitest unit tests
         if: steps.changes.outputs.changed == 'true'
-        env:
-          CLERK_SECRET_KEY: test_secret_key
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: test_publishable_key
         run: |
           # Only run if there are .test or .spec files in __tests__
           if ls __tests__/*.{test,spec}.[jt]s* 1> /dev/null 2>&1; then
@@ -74,9 +80,6 @@ jobs:
       # 9. Run Playwright E2E tests (only if Playwright test files exist)
       - name: Run Playwright E2E tests
         if: steps.changes.outputs.changed == 'true'
-        env:
-          CLERK_SECRET_KEY: test_secret_key
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: test_publishable_key
         run: |
           # Only run if there are Playwright test files in __tests__
           if ls __tests__/*.{e2e,test,spec}.[jt]s* 1> /dev/null 2>&1; then

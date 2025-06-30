@@ -6,7 +6,7 @@ const openai = new OpenAI({
 
 export async function generateHabitSuggestions(currentHabits: string[]) {
   const prompt = `Based on these current habits: ${currentHabits.join(
-    ", "
+    ", ",
   )}, suggest 3 new complementary habits that would help build a well-rounded routine. Format the response as a JSON array of strings.`;
 
   const completion = await openai.chat.completions.create({
@@ -21,7 +21,7 @@ export async function generateHabitSuggestions(currentHabits: string[]) {
 
 export async function generateMotivationalMessage(
   habitName: string,
-  streak: number
+  streak: number,
 ) {
   const prompt = `Generate a short, encouraging message for someone who missed their "${habitName}" habit. They had a ${streak}-day streak. Keep it positive and motivating.`;
 
@@ -44,4 +44,4 @@ export async function parseHabitFromText(text: string) {
   });
 
   return JSON.parse(completion.choices[0].message.content || "{}");
-} 
+}
