@@ -11,7 +11,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
   - Appearance: Default arrow pointer.
 
 - **Pointer Cursor:**  
-  - Used on clickable elements such as buttons, links, habit cards, friend list items, and navigation items.
+  - Used on clickable elements such as buttons, links, habit cards, friend list items, and navigation items (including sidebar).
   - Appearance: Hand pointer.
 
 - **Text Cursor (I-beam):**  
@@ -22,7 +22,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 2. Disabled Elements
 
-- **Disabled Buttons (e.g., Send Cheers to Self):**  
+- **Disabled Buttons (e.g., Send Cheers to Self, Remove Friend when not allowed):**  
   - Cursor: `not-allowed` (circle with a line through it).
   - Tooltip explaining why the action is disabled appears on hover.
   - Visual style: Grayed out or reduced opacity.
@@ -55,6 +55,14 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 - Ensure cursor changes are accompanied by visual focus indicators for keyboard navigation.
 - Do not rely solely on cursor changes to indicate interactivity.
+- All interactive elements (including Friends and Habits features, sidebar navigation, and UI primitives like Button) maintain accessibility and focus indicators.
+
+---
+
+## 7. UI Primitives & Consistency
+
+- All reusable UI components (Button, Input, etc.) in `components/ui/` use the correct cursor and accessibility states.
+- Friends and Habits features, as well as navigation, consistently use pointer, not-allowed, and wait cursors as appropriate.
 
 ---
 
@@ -63,9 +71,9 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 | Element/State               | Cursor Type   | Notes                                  |
 |----------------------------|---------------|---------------------------------------|
 | Default background         | default       | Non-interactive areas                  |
-| Clickable buttons/links    | pointer       | Habit cards, navigation, friend items |
+| Clickable buttons/links    | pointer       | Habit cards, navigation, friend items  |
 | Input fields/text areas    | text          | Editable text                         |
-| Disabled buttons           | not-allowed   | Disabled actions with tooltip         |
+| Disabled buttons           | not-allowed   | Disabled actions with tooltip          |
 | Loading actions            | wait          | Async operations                      |
 | Draggable items (optional) | grab/grabbing | Drag and drop UI                      |
 

@@ -5,16 +5,25 @@
 - Habit: id, userId, name, emoji, frequency, streak, createdAt, updatedAt
 - HabitCompletion: id, habitId, date, mood, notes
 - Friendship: id, userId, friendId, status (pending, accepted, declined)
-- Cheer: id, fromUserId, toUserId, habitId, message, createdAt
+- Cheer: id, senderId, receiverId, habitId, message, createdAt
+- Notification: id, userId, type, message, isRead, relatedEntityId, createdAt, updatedAt
 - AIRecommendation: id, userId, habitSuggestion, reason, createdAt
 
 ## API (tRPC)
 - Auth: signUp, signIn, signOut
 - Habits: create, read, update, delete, complete, getHistory
-- Friends: sendRequest, acceptRequest, declineRequest, removeFriend, listFriends
+- Friends: sendRequest, acceptRequest, declineRequest, removeFriend, listFriends, listPendingRequests
 - Cheers: sendCheer, listCheers
+- Notification: (planned) listNotifications, markAsRead
 - AI: getSuggestions, getMotivationalMessage, analyzeProgress
 
 ## Integrations
 - OpenAI API (for AI-powered suggestions, motivational messages, sentiment analysis)
 - (Optional) Calendar/weather API for contextual nudges
+
+## Structure & Modularity
+- Modular tRPC routers for habits, friends, cheers, and (planned) notifications
+- Backend and frontend use a modular folder structure for maintainability
+- UI primitives (Button, etc.) are maintained in `components/ui/` for frontend consistency
+- Friends and Cheers features are fully supported in both backend and UI
+- Notification model is present in backend, UI implementation is planned
