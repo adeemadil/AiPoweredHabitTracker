@@ -16,6 +16,11 @@
    - **All feature UIs use atomic UI primitives from `components/ui/` for consistency, accessibility, and cursor/click states.**
    - **Toast notifications** are used for all feedback (success, error, info), replacing blocking alerts.
    - **Disabled states** and tooltips are used for restricted actions (e.g., sending cheers to self).
+   - **Loading states:**
+     - Skeleton loaders are used for lists (e.g., habits list).
+     - The reusable Spinner UI primitive is used for buttons, modals, and focused loading states.
+   - **Empty states** feature minimal illustrations and actionable messages for a delightful experience.
+   - **Micro-interactions**: Animations for form validation, card addition, and sidebar transitions enhance feedback and delight.
 
 3. **Friends & Cheers**
 

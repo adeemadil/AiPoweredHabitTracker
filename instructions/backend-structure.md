@@ -31,4 +31,4 @@
 - UI primitives (Button, etc.) are maintained in `components/ui/` and used throughout the frontend for consistency, accessibility, and cursor rules
 - Friends and Cheers features are fully supported in both backend and UI
 - Notification model is present in backend, UI implementation is planned
-- Toast notifications and disabled states are used for all user feedback and error handling in the frontend, tightly integrated with backend responses.
+- Toast notifications, disabled states, and the Spinner UI primitive are used for all user feedback and error handling in the frontend, tightly integrated with backend responses. Skeleton loaders are used for lists, and Spinner is used for focused loading (e.g., buttons, modals).

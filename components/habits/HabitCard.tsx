@@ -6,6 +6,7 @@ import toast, { Toaster } from "react-hot-toast";
 import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/Button";
 import CheersModal from "./CheersModal";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface HabitCardProps {
   habit: {
@@ -126,7 +127,7 @@ export default function HabitCard({ habit }: HabitCardProps) {
           disabled={isCompleting || isCompletedToday}
           className={isCompletedToday ? "opacity-50 cursor-not-allowed" : ""}
         >
-          {isCompletedToday ? "Completed" : "Complete"}
+          {isCompleting ? <Spinner className="w-4 h-4 mr-2" /> : isCompletedToday ? "Completed" : "Complete"}
         </Button>
       </div>
 
@@ -136,7 +137,7 @@ export default function HabitCard({ habit }: HabitCardProps) {
         variant="secondary"
         className="w-full mt-2"
       >
-        View/Send Cheers ({cheers?.length || 0})
+        {isLoadingCheers ? <Spinner className="w-4 h-4 mr-2" /> : <>View/Send Cheers ({cheers?.length || 0})</>}
       </Button>
 
       {/* CheersModal extracted as atomic component */}

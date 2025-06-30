@@ -11,7 +11,7 @@ A modern, social, AI-powered habit tracker app with authentication, habit streak
 - Social features (friends, cheers)
 - Analytics (streaks, completion rates, badges)
 - AI-powered suggestions, adaptive reminders, and motivational feedback
-- Responsive, modern UI with dark mode
+- Responsive, modern UI with dark mode, improved loading feedback (Spinner and skeleton loaders), delightful empty states, and micro-interactions for a modern, responsive experience.
 
 ## User Stories
 

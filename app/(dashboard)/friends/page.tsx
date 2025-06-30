@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc/init";
 import FriendsList, { Friend } from "@/components/friends/FriendsList";
 import AddFriendForm from "@/components/friends/AddFriendForm";
 import PendingRequestsList from "@/components/friends/PendingRequestsList";
+import { Spinner } from "@/components/ui/Spinner";
 
 export default function FriendsPage() {
   const [friendEmail, setFriendEmail] = useState("");
@@ -107,7 +108,7 @@ export default function FriendsPage() {
       <div className="p-4 border rounded shadow bg-white dark:bg-gray-800">
         <h2 className="text-xl font-semibold mb-4">Your Friends</h2>
         {isLoadingFriends ? (
-          <p>Loading friends...</p>
+          <div className="flex justify-center py-4"><Spinner className="w-6 h-6" /></div>
         ) : friends && friends.length > 0 ? (
           <FriendsList
             friends={friends as Friend[]}

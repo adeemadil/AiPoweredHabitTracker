@@ -65,8 +65,8 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 7. UI Primitives & Consistency
 
-- All reusable UI components (Button, Input, etc.) in `components/ui/` use the correct cursor and accessibility states.
-- Friends and Habits features, as well as navigation, consistently use pointer, not-allowed, and wait cursors as appropriate.
+- All reusable UI components (Button, Input, Spinner, etc.) in `components/ui/` use the correct cursor and accessibility states.
+- Friends and Habits features, as well as navigation, consistently use pointer, not-allowed, and wait cursors as appropriate. Spinner is used for loading in buttons and modals, while skeleton loaders are used for lists.
 - **Toast notifications and tooltips are used for feedback and disabled states.**
 - **All feature UIs and primitives are modular and consistent across the app.**
 

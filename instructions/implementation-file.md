@@ -45,7 +45,7 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
 
 - Create and maintain reusable, low-level UI components in `components/ui/` (e.g., Button, Input, Modal, Avatar)
 - Use these primitives throughout the app for consistency (Habits, Friends, etc.)
-- **All UI primitives follow cursor and accessibility rules, and are used in all feature UIs.**
+- **All UI primitives (including Spinner for loading states) follow cursor and accessibility rules, and are used in all feature UIs. Skeleton loaders are used for lists.**
 
 ### 1.5 Analytics Page
 
@@ -107,3 +107,5 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
 - **CI/CD and test integration:**
   - GitHub Actions workflows run lint, unit, and E2E tests (Vitest, Playwright) on PRs and deploys.
   - Test steps are conditional on the presence of test files for efficiency.
+- **Empty states now feature minimal illustrations and actionable messages for a delightful experience.**
+- **Micro-interactions (animations for validation, card addition, sidebar transitions) enhance feedback and delight.**

@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/Button";
 import { Avatar } from "@/components/ui/Avatar";
 import React from "react";
+import { Spinner } from "@/components/ui/Spinner";
 
 interface PendingRequest {
   id: string;
@@ -25,7 +26,7 @@ export default function PendingRequestsList({
     <div className="mb-8 p-4 border rounded shadow bg-white dark:bg-gray-800">
       <h2 className="text-xl font-semibold mb-4">Pending Requests</h2>
       {loading ? (
-        <p>Loading requests...</p>
+        <div className="flex justify-center py-2"><Spinner className="w-5 h-5" /></div>
       ) : requests && requests.length > 0 ? (
         <ul className="divide-y divide-gray-200 dark:divide-gray-700">
           {requests.map((req) => (

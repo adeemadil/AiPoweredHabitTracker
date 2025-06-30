@@ -3,10 +3,10 @@
 - **Frontend:** React (Next.js), Tailwind CSS, TypeScript
 - **State Management:** React Query, Zustand (if needed)
 - **UI Library:** Custom components + Headless UI, Radix UI
-- **UI Primitives:** Button, Input, etc. in `components/ui/` (used throughout the app for consistency, accessibility, and cursor rules)
+- **UI Primitives:** Button, Input, Spinner, etc. in `components/ui/` (used throughout the app for consistency, accessibility, and cursor rules)
 - **Navigation:** Persistent sidebar navigation for Habits, Friends, etc. (built with UI primitives)
 - **Feature Structure:** Modular folders for features (e.g., `components/habits/`, `components/friends/`)
-- **All feature UIs (Habits, Friends, Cheers, Sidebar, etc.) use atomic UI primitives for a unified, accessible, and consistent experience.**
+- **All feature UIs (Habits, Friends, Cheers, Sidebar, etc.) use atomic UI primitives for a unified, accessible, and consistent experience. Skeleton loaders are used for lists, Spinner for focused loading. Empty states and micro-interactions have been improved.**
 - **All user feedback (success, error, info) is provided via toast notifications and tooltips, not blocking alerts.**
 - **Authentication:** Clerk
 - **Backend:** tRPC (type-safe API)

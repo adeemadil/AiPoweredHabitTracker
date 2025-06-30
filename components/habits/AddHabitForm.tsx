@@ -6,6 +6,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
+import { Spinner } from "@/components/ui/Spinner";
 
 const habitSchema = z.object({
   name: z.string().min(1, "Habit name is required"),
@@ -50,6 +51,8 @@ export default function AddHabitForm() {
     }
   };
 
+  const isFormValid = habitSchema.safeParse({ name, emoji, frequency }).success;
+
   return (
     <form onSubmit={handleSubmit} className="card space-y-4">
       <div>
@@ -88,10 +91,16 @@ export default function AddHabitForm() {
         </select>
       </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+      {error && (
+        <p className="text-red-500 text-sm animate-fade-in">{error}</p>
+      )}
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? "Adding..." : "Add Habit"}
+      <Button
+        type="submit"
+        disabled={!isFormValid || isLoading}
+        className={`w-full transition-opacity duration-200 ${!isFormValid || isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+      >
+        {isLoading ? <Spinner className="w-5 h-5" /> : "Add Habit"}
       </Button>
     </form>
   );
