@@ -161,13 +161,13 @@ export default function HabitList() {
       )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {(habits as Habit[]).map((habit) => (
-          <div key={habit.id} className="relative">
+          <div key={habit.id} className="relative group">
             <div className="absolute top-2 left-2 z-10">
               <input
                 type="checkbox"
                 checked={selected.includes(habit.id)}
                 onChange={() => handleSelect(habit.id)}
-                className="w-5 h-5 accent-primary-600 rounded"
+                className="w-5 h-5 accent-primary-600 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                 aria-label="Select habit"
               />
             </div>
