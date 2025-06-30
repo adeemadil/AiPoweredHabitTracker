@@ -1,6 +1,5 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { trpc } from "@/lib/trpc/client";
+import { trpc } from "@/lib/trpc/init";
 import HabitCard from "./HabitCard";
 
 export default function HabitList() {

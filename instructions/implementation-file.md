@@ -1,7 +1,7 @@
 # Implementation File
 
 ## Overview
-This document outlines the step-by-step implementation plan for the AI-Powered Habit Tracker app improvements, focusing on UI/UX redesign, AI feature integration, backend enhancements, and modularity.
+This document outlines the step-by-step implementation plan for the AI-Powered Habit Tracker app improvements, focusing on UI/UX redesign, AI feature integration, backend enhancements, modularity, and consistent use of UI primitives.
 
 ---
 
@@ -15,6 +15,7 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
 - Use React components with Tailwind CSS for responsive styling.
 - Sidebar navigation is always visible for easy access to main features.
 - Ensure accessibility (ARIA roles, keyboard navigation).
+- **All sidebar and navigation elements use atomic UI primitives from `components/ui/` for consistency and cursor rules.**
 
 ### 1.2 Habit & Friends Cards
 - Redesign habit and friends cards with:
@@ -24,6 +25,7 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
   - "View/Send Cheers" button with modal (for habits)
 - Add animations for streak updates and cheers received.
 - Use modular components: `components/habits/`, `components/friends/`
+- **All cards and actions use UI primitives and follow cursor/accessibility rules.**
 
 ### 1.3 Friends & Cheers UI
 - Create a Friends page:
@@ -33,11 +35,12 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
 - Cheers modal:
   - List cheers with sender, message, timestamp
   - Input for sending cheers (disabled if not friend or self)
+  - **All forms and modals use UI primitives and provide toast notifications for feedback.**
 
 ### 1.4 UI Primitives
 - Create and maintain reusable, low-level UI components in `components/ui/` (e.g., Button, Input, Modal, Avatar)
 - Use these primitives throughout the app for consistency (Habits, Friends, etc.)
-- All UI primitives follow cursor and accessibility rules
+- **All UI primitives follow cursor and accessibility rules, and are used in all feature UIs.**
 
 ### 1.5 Analytics Page
 - Implement charts (e.g., line, bar) using a library like Recharts or Chart.js.
@@ -88,4 +91,7 @@ This document outlines the step-by-step implementation plan for the AI-Powered H
 - Maintain modular folder structure for all features (habits, friends, etc.)
 - Use UI primitives from `components/ui/` throughout the app
 - Ensure all new UI (Friends, Habits, sidebar, etc.) follows cursor and accessibility rules
-- Plan for future modularization of notifications and analytics
+- **All user feedback (success, error, info) is provided via toast notifications and tooltips, not blocking alerts.**
+- **CI/CD and test integration:**
+  - GitHub Actions workflows run lint, unit, and E2E tests (Vitest, Playwright) on PRs and deploys.
+  - Test steps are conditional on the presence of test files for efficiency.

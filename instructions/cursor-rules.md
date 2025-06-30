@@ -26,6 +26,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
   - Cursor: `not-allowed` (circle with a line through it).
   - Tooltip explaining why the action is disabled appears on hover.
   - Visual style: Grayed out or reduced opacity.
+  - **Toast notifications** are used for error feedback in addition to tooltips.
 
 ---
 
@@ -56,6 +57,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 - Ensure cursor changes are accompanied by visual focus indicators for keyboard navigation.
 - Do not rely solely on cursor changes to indicate interactivity.
 - All interactive elements (including Friends and Habits features, sidebar navigation, and UI primitives like Button) maintain accessibility and focus indicators.
+- **All feature UIs (Habits, Friends, Cheers, Sidebar, etc.) and all atomic UI primitives use these cursor and accessibility rules.**
 
 ---
 
@@ -63,6 +65,8 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 - All reusable UI components (Button, Input, etc.) in `components/ui/` use the correct cursor and accessibility states.
 - Friends and Habits features, as well as navigation, consistently use pointer, not-allowed, and wait cursors as appropriate.
+- **Toast notifications and tooltips are used for feedback and disabled states.**
+- **All feature UIs and primitives are modular and consistent across the app.**
 
 ---
 
@@ -73,10 +77,10 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 | Default background         | default       | Non-interactive areas                  |
 | Clickable buttons/links    | pointer       | Habit cards, navigation, friend items  |
 | Input fields/text areas    | text          | Editable text                         |
-| Disabled buttons           | not-allowed   | Disabled actions with tooltip          |
+| Disabled buttons           | not-allowed   | Disabled actions with tooltip/feedback |
 | Loading actions            | wait          | Async operations                      |
 | Draggable items (optional) | grab/grabbing | Drag and drop UI                      |
 
 ---
 
-By following these cursor rules, the app will provide clear visual cues to users about interactivity and state, enhancing usability and accessibility.
+By following these cursor rules, the app will provide clear visual cues to users about interactivity and state, enhancing usability, accessibility, and consistency across all features and UI primitives.

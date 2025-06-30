@@ -1,20 +1,10 @@
 "use client";
 
-import { trpc } from "@/lib/trpc/client";
 import { useState } from "react";
-
-// Helper to generate avatar initials and color
-function getAvatar(email: string) {
-  const initials = email
-    .split("@")[0]
-    .split(/[._-]/)
-    .map((s) => s[0]?.toUpperCase() || "")
-    .join("")
-    .slice(0, 2);
-  // Simple color hash
-  const color = `hsl(${email.length * 37 % 360}, 70%, 60%)`;
-  return { initials, color };
-}
+import { trpc } from "@/lib/trpc/init";
+import FriendsList, { Friend } from "@/components/friends/FriendsList";
+import AddFriendForm from "@/components/friends/AddFriendForm";
+import PendingRequestsList from "@/components/friends/PendingRequestsList";
 
 export default function FriendsPage() {
   const [friendEmail, setFriendEmail] = useState("");
@@ -85,49 +75,21 @@ export default function FriendsPage() {
       <h1 className="text-3xl font-bold mb-2">Friends & Social</h1>
       <p className="text-gray-500 mb-8">Manage your friends, requests, and social motivation.</p>
 
-      {/* Add Friend Form */}
-      <form onSubmit={handleSendRequest} className="mb-8 p-4 border rounded shadow bg-white dark:bg-gray-800">
-        <h2 className="text-xl font-semibold mb-4">Add a Friend</h2>
-        <div className="flex gap-2 items-center">
-          <input
-            type="email"
-            value={friendEmail}
-            onChange={(e) => setFriendEmail(e.target.value)}
-            placeholder="Enter friend's email"
-            className="border p-2 rounded flex-1"
-            aria-label="Friend's email"
-          />
-          <button type="submit" className="btn-primary">Send Request</button>
-        </div>
-      </form>
+      {/* Add Friend Form (atomic) */}
+      <AddFriendForm
+        value={friendEmail}
+        onChange={(e) => setFriendEmail(e.target.value)}
+        onSubmit={handleSendRequest}
+        loading={sendFriendRequestMutation.isLoading}
+      />
 
-      {/* Pending Friend Requests */}
-      <div className="mb-8 p-4 border rounded shadow bg-white dark:bg-gray-800">
-        <h2 className="text-xl font-semibold mb-4">Pending Requests</h2>
-        {isLoadingRequests ? (
-          <p>Loading requests...</p>
-        ) : pendingRequests && pendingRequests.length > 0 ? (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {pendingRequests.map((req: { id: string; user: { id: string; email: string } }) => {
-              const { initials, color } = getAvatar(req.user.email);
-              return (
-                <li key={req.id} className="flex justify-between items-center py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                  <div className="flex items-center gap-3">
-                    <span className="w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold" style={{ background: color, color: '#fff' }} aria-label={`Avatar for ${req.user.email}`}>{initials}</span>
-                    <span className="text-gray-800 dark:text-gray-200">{req.user.email} wants to be your friend.</span>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => handleAcceptRequest(req.id)} className="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-3 rounded transition">Accept</button>
-                    <button onClick={() => handleDeclineRequest(req.id)} className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-3 rounded transition">Decline</button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <div className="text-gray-500 text-center py-4">No pending friend requests. You're all caught up!</div>
-        )}
-      </div>
+      {/* Pending Friend Requests (atomic) */}
+      <PendingRequestsList
+        requests={pendingRequests || []}
+        onAccept={handleAcceptRequest}
+        onDecline={handleDeclineRequest}
+        loading={isLoadingRequests}
+      />
 
       {/* Friends List */}
       <div className="p-4 border rounded shadow bg-white dark:bg-gray-800">
@@ -135,20 +97,7 @@ export default function FriendsPage() {
         {isLoadingFriends ? (
           <p>Loading friends...</p>
         ) : friends && friends.length > 0 ? (
-          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
-            {friends.map((friend: { friendshipId: string; friendEmail: string }) => {
-              const { initials, color } = getAvatar(friend.friendEmail);
-              return (
-                <li key={friend.friendshipId} className="flex justify-between items-center py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                  <div className="flex items-center gap-3">
-                    <span className="w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold" style={{ background: color, color: '#fff' }} aria-label={`Avatar for ${friend.friendEmail}`}>{initials}</span>
-                    <span className="text-gray-800 dark:text-gray-200">{friend.friendEmail}</span>
-                  </div>
-                  <button onClick={() => handleRemoveFriend(friend.friendshipId)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded transition">Remove</button>
-                </li>
-              );
-            })}
-          </ul>
+          <FriendsList friends={friends as Friend[]} onRemove={handleRemoveFriend} />
         ) : (
           <div className="text-gray-500 text-center py-4">You have no friends yet. Add some!</div>
         )}

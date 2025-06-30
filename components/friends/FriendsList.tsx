@@ -1,4 +1,6 @@
 import React from "react";
+import { Avatar } from "@/components/ui/Avatar";
+import { Button } from "@/components/ui/Button";
 
 export interface Friend {
   friendshipId: string;
@@ -32,10 +34,12 @@ export default function FriendsList({ friends, onRemove }: FriendsListProps) {
         return (
           <li key={friend.friendshipId} className="flex justify-between items-center py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
             <div className="flex items-center gap-3">
-              <span className="w-9 h-9 rounded-full flex items-center justify-center text-lg font-bold" style={{ background: color, color: '#fff' }} aria-label={`Avatar for ${friend.friendEmail}`}>{initials}</span>
+              <Avatar emailOrName={friend.friendEmail} size={36} />
               <span className="text-gray-800 dark:text-gray-200">{friend.friendEmail}</span>
             </div>
-            <button onClick={() => onRemove(friend.friendshipId)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-1 px-3 rounded transition">Remove</button>
+            <Button variant="danger" onClick={() => onRemove(friend.friendshipId)}>
+              Remove
+            </Button>
           </li>
         );
       })}

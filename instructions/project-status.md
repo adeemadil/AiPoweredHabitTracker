@@ -7,9 +7,13 @@
 - Cheers system (send, receive, restrictions) using UI primitives
 - Sidebar navigation for Habits and Friends
 - Modular UI for Friends and Habits (components/friends, components/habits)
-- UI primitives (Button, etc.) used throughout the app for consistency
+- All feature UIs (Habits, Friends, Cheers, Sidebar, etc.) use atomic UI primitives from `components/ui/` for consistency, accessibility, and cursor rules
 - Responsive UI, dark mode
 - tRPC API and Prisma ORM backend
+- Toast notifications and tooltips are used for all user feedback and error handling.
+- CI/CD and test integration:
+  - GitHub Actions workflows run lint, unit, and E2E tests (Vitest, Playwright) on PRs and deploys.
+  - Test steps are conditional on the presence of test files for efficiency.
 
 ## In Progress
 - Dashboard redesign (sidebar/topbar, analytics, habit cards)
