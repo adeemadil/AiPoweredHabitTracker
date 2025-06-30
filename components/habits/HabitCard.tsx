@@ -7,22 +7,19 @@ import { useUser } from "@clerk/nextjs";
 import { Button } from "@/components/ui/Button";
 import CheersModal from "./CheersModal";
 import { Spinner } from "@/components/ui/Spinner";
+import { Trash } from "lucide-react";
+import { Habit } from "@/types/habit";
 
 interface HabitCardProps {
-  habit: {
-    id: string;
-    name: string;
-    emoji?: string | null;
-    streak: number;
-    lastCompleted?: Date | null;
-    userId: string;
-  };
+  habit: Habit;
+  onDelete?: (id: string) => void;
 }
 
-export default function HabitCard({ habit }: HabitCardProps) {
+export default function HabitCard({ habit, onDelete }: HabitCardProps) {
   const [isCompleting, setIsCompleting] = useState(false);
   const [showCheersModal, setShowCheersModal] = useState(false);
   const [cheerMessage, setCheerMessage] = useState("");
+  const [showSelfCheerError, setShowSelfCheerError] = useState(false);
   const utils = trpc.useUtils();
   const { user } = useUser();
   const currentUserId = user?.id;
@@ -78,16 +75,7 @@ export default function HabitCard({ habit }: HabitCardProps) {
 
   const handleSendCheer = () => {
     if (!habit.userId || habit.userId === currentUserId) {
-      toast.error("You can't send cheers to yourself!", {
-        style: {
-          borderRadius: "8px",
-          background: "#333",
-          color: "#fff",
-          fontSize: "0.95rem",
-          padding: "12px 20px",
-        },
-        icon: "🚫",
-      });
+      setShowSelfCheerError(true);
       return;
     }
     sendCheer({
@@ -106,8 +94,20 @@ export default function HabitCard({ habit }: HabitCardProps) {
   const disableSendCheer = habit.userId === currentUserId;
 
   return (
-    <div className="card flex flex-col items-start gap-4">
+    <div className="card flex flex-col items-start gap-4 group relative">
       <Toaster position="top-right" />
+      {/* Trash icon button, only visible on hover/focus */}
+      {onDelete && (
+        <button
+          type="button"
+          aria-label="Delete habit"
+          onClick={() => onDelete(habit.id)}
+          className="absolute top-3 right-3 z-20 p-1 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-2 focus:ring-red-400"
+          tabIndex={0}
+        >
+          <Trash className="w-5 h-5" />
+        </button>
+      )}
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-4">
           {habit.emoji && (
@@ -149,9 +149,12 @@ export default function HabitCard({ habit }: HabitCardProps) {
           cheerMessage={cheerMessage}
           setCheerMessage={setCheerMessage}
           onSendCheer={handleSendCheer}
-          onClose={() => setShowCheersModal(false)}
+          onClose={() => { setShowCheersModal(false); setShowSelfCheerError(false); }}
           disableSendCheer={disableSendCheer}
         />
+      )}
+      {showSelfCheerError && (
+        <div className="text-xs text-red-500 mt-2 animate-fade-in">You can&apos;t send cheers to yourself.</div>
       )}
     </div>
   );

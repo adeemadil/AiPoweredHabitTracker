@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc/init";
 import HabitCard from "./HabitCard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { Habit } from "@/types/habit";
 
 const HABIT_CACHE_KEY = "habitCache";
 const HABIT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -34,13 +35,15 @@ function setCachedHabits(data: any) {
 export default function HabitList() {
   const [selected, setSelected] = useState<string[]>([]);
   const [confirming, setConfirming] = useState(false);
-  const { data: habits, isLoading, refetch } = trpc.habitTracker.list.useQuery(undefined, {
+  const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
+  const { data: habits = [], isLoading, refetch } = trpc.habitTracker.list.useQuery<Habit[]>(undefined, {
     onSuccess: (data) => setCachedHabits(data),
     initialData: getCachedHabits() || undefined,
   });
   const deleteHabit = trpc.habitTracker.delete.useMutation({
     onSuccess: () => {
       setSelected([]);
+      setHabitToDelete(null);
       refetch();
     },
   });
@@ -103,9 +106,7 @@ export default function HabitList() {
     );
   };
   const handleDelete = (id: string) => {
-    if (window.confirm("Delete this habit?")) {
-      deleteHabit.mutate({ habitId: id });
-    }
+    setHabitToDelete(id);
   };
   const handleBulkDelete = () => {
     setConfirming(true);
@@ -141,8 +142,25 @@ export default function HabitList() {
           </div>
         </div>
       )}
+      {habitToDelete && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
+            <div className="mb-4">Are you sure you want to delete this habit?</div>
+            <div className="flex gap-2 justify-end">
+              <Button onClick={() => setHabitToDelete(null)} variant="secondary">Cancel</Button>
+              <Button
+                onClick={() => deleteHabit.mutate({ habitId: habitToDelete })}
+                variant="danger"
+                disabled={deleteHabit.status === "loading"}
+              >
+                {deleteHabit.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {habits.map((habit) => (
+        {(habits as Habit[]).map((habit) => (
           <div key={habit.id} className="relative">
             <div className="absolute top-2 left-2 z-10">
               <input
@@ -153,18 +171,7 @@ export default function HabitList() {
                 aria-label="Select habit"
               />
             </div>
-            <div className="absolute top-2 right-2 z-10">
-              <Button
-                variant="danger"
-                onClick={() => handleDelete(habit.id)}
-                disabled={deleteHabit.status === "loading"}
-                className="px-2 py-1 text-xs"
-                title="Delete habit"
-              >
-                {deleteHabit.status === "loading" ? <Spinner className="w-3 h-3" /> : "Delete"}
-              </Button>
-            </div>
-            <HabitCard habit={habit} />
+            <HabitCard habit={habit} onDelete={handleDelete} />
           </div>
         ))}
       </div>
