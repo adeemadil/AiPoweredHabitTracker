@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc/init";
 import { useState } from "react";
 import { ClerkProvider } from "@clerk/nextjs";
 import superjson from "superjson";
+import { httpBatchLink } from "@trpc/react-query";
 
 // Provider wraps the app in all necessary context providers
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -12,7 +13,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
     trpc.createClient({
       transformer: superjson,
       links: [
-        // Add your tRPC links here (e.g., httpBatchLink)
+        httpBatchLink({
+          url: "/api/trpc",
+        }),
       ],
     }),
   );
