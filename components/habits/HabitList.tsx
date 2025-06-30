@@ -1,6 +1,33 @@
 "use client";
+import { useEffect, useState, useCallback } from "react";
 import { trpc } from "@/lib/trpc/init";
 import HabitCard from "./HabitCard";
+
+const HABIT_CACHE_KEY = "habitCache";
+const HABIT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+function getCachedHabits() {
+  if (typeof window === "undefined") return null;
+  const cache = localStorage.getItem(HABIT_CACHE_KEY);
+  if (!cache) return null;
+  try {
+    const { data, timestamp } = JSON.parse(cache);
+    if (Date.now() - timestamp < HABIT_CACHE_TTL) {
+      return data;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function setCachedHabits(data: any) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(
+    HABIT_CACHE_KEY,
+    JSON.stringify({ data, timestamp: Date.now() }),
+  );
+}
 
 export default function HabitList() {
   const { data: habits, isLoading } = trpc.habitTracker.list.useQuery();
@@ -27,19 +54,10 @@ export default function HabitList() {
   }
 
   return (
-    <div className="grid gap-4">
-      {habits.map(
-        (habit: {
-          id: string;
-          name: string;
-          emoji?: string | null;
-          streak: number;
-          lastCompleted?: Date | null;
-          userId: string;
-        }) => (
-          <HabitCard key={habit.id} habit={habit} />
-        ),
-      )}
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {habits.map((habit) => (
+        <HabitCard key={habit.id} habit={habit} />
+      ))}
     </div>
   );
 }

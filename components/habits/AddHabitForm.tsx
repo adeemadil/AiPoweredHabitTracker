@@ -26,6 +26,9 @@ export default function AddHabitForm() {
         setName("");
         setEmoji("");
         setFrequency("daily");
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("habitCache");
+        }
         utils.habitTracker.list.invalidate();
       },
       onError: (error: any) => {
