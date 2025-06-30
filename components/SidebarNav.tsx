@@ -11,7 +11,9 @@ export default function SidebarNav() {
   ];
   return (
     <nav className="h-full w-48 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col py-8 px-4">
-      <div className="mb-8 text-2xl font-bold text-primary-700 dark:text-primary-300">Habit Tracker</div>
+      <div className="mb-8 text-2xl font-bold text-primary-700 dark:text-primary-300">
+        Habit Tracker
+      </div>
       <ul className="flex flex-col gap-4">
         {navItems.map((item) => (
           <li key={item.href}>
@@ -30,4 +32,4 @@ export default function SidebarNav() {
       </ul>
     </nav>
   );
-} 
+}

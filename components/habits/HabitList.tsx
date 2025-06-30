@@ -28,9 +28,18 @@ export default function HabitList() {
 
   return (
     <div className="grid gap-4">
-      {habits.map((habit: { id: string; name: string; emoji?: string | null; streak: number; lastCompleted?: Date | null; userId: string }) => (
-        <HabitCard key={habit.id} habit={habit} />
-      ))}
+      {habits.map(
+        (habit: {
+          id: string;
+          name: string;
+          emoji?: string | null;
+          streak: number;
+          lastCompleted?: Date | null;
+          userId: string;
+        }) => (
+          <HabitCard key={habit.id} habit={habit} />
+        ),
+      )}
     </div>
   );
-} 
+}

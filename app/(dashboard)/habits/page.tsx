@@ -19,4 +19,4 @@ export default async function HabitsPage() {
       </div>
     </div>
   );
-} 
+}

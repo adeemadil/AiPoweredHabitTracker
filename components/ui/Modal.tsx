@@ -39,10 +39,10 @@ export function Modal({ open, onClose, children, className = "" }: ModalProps) {
         className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full ${className}`}
         ref={modalRef}
         tabIndex={0}
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         {children}
       </div>
     </div>
   );
-} 
+}

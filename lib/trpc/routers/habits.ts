@@ -6,7 +6,7 @@ export const habitsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     // Ensure user exists in database
     await ensureUserExists(ctx.userId, ctx.prisma);
-    
+
     const habits = await ctx.prisma.habit.findMany({
       where: { userId: ctx.userId },
       include: {
@@ -30,12 +30,12 @@ export const habitsRouter = router({
         name: z.string().min(1),
         emoji: z.string().optional(),
         frequency: z.enum(["daily", "weekly"]),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Ensure user exists in database
       await ensureUserExists(ctx.userId, ctx.prisma);
-      
+
       return ctx.prisma.habit.create({
         data: {
           ...input,
@@ -76,7 +76,7 @@ export const habitsRouter = router({
         habitId: z.string(),
         receiverId: z.string(),
         message: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Ensure the habit exists and belongs to the receiver
@@ -95,8 +95,16 @@ export const habitsRouter = router({
       const friendship = await ctx.prisma.friendship.findFirst({
         where: {
           OR: [
-            { userId: ctx.userId, friendId: input.receiverId, status: "accepted" },
-            { userId: input.receiverId, friendId: ctx.userId, status: "accepted" },
+            {
+              userId: ctx.userId,
+              friendId: input.receiverId,
+              status: "accepted",
+            },
+            {
+              userId: input.receiverId,
+              friendId: ctx.userId,
+              status: "accepted",
+            },
           ],
         },
       });
@@ -200,4 +208,4 @@ export function calculateStreak(completions: { date: Date }[]) {
   }
 
   return streak;
-} 
+}

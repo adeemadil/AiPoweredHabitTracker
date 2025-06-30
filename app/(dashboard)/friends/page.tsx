@@ -10,10 +10,18 @@ export default function FriendsPage() {
   const [friendEmail, setFriendEmail] = useState("");
 
   // Fetch current friends
-  const { data: friends, isLoading: isLoadingFriends, refetch: refetchFriends } = trpc.friends.listFriends.useQuery();
+  const {
+    data: friends,
+    isLoading: isLoadingFriends,
+    refetch: refetchFriends,
+  } = trpc.friends.listFriends.useQuery();
 
   // Fetch pending friend requests
-  const { data: pendingRequests, isLoading: isLoadingRequests, refetch: refetchRequests } = trpc.friends.listPendingRequests.useQuery();
+  const {
+    data: pendingRequests,
+    isLoading: isLoadingRequests,
+    refetch: refetchRequests,
+  } = trpc.friends.listPendingRequests.useQuery();
 
   // Mutations (send, accept, decline, remove)
   const sendFriendRequestMutation = trpc.friends.sendRequest.useMutation({
@@ -43,7 +51,7 @@ export default function FriendsPage() {
     },
     onError: (error) => {
       alert(`Error declining request: ${error.message}`);
-    }
+    },
   });
   const removeFriendMutation = trpc.friends.removeFriend.useMutation({
     onSuccess: () => {
@@ -52,13 +60,15 @@ export default function FriendsPage() {
     },
     onError: (error) => {
       alert(`Error removing friend: ${error.message}`);
-    }
+    },
   });
 
   // Handlers
   const handleSendRequest = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    alert("Sending friend request functionality needs backend adjustment for email or a user search feature.");
+    alert(
+      "Sending friend request functionality needs backend adjustment for email or a user search feature.",
+    );
   };
   const handleAcceptRequest = (friendshipId: string) => {
     acceptFriendRequestMutation.mutate({ friendshipId });
@@ -73,7 +83,9 @@ export default function FriendsPage() {
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
       <h1 className="text-3xl font-bold mb-2">Friends & Social</h1>
-      <p className="text-gray-500 mb-8">Manage your friends, requests, and social motivation.</p>
+      <p className="text-gray-500 mb-8">
+        Manage your friends, requests, and social motivation.
+      </p>
 
       {/* Add Friend Form (atomic) */}
       <AddFriendForm
@@ -97,9 +109,14 @@ export default function FriendsPage() {
         {isLoadingFriends ? (
           <p>Loading friends...</p>
         ) : friends && friends.length > 0 ? (
-          <FriendsList friends={friends as Friend[]} onRemove={handleRemoveFriend} />
+          <FriendsList
+            friends={friends as Friend[]}
+            onRemove={handleRemoveFriend}
+          />
         ) : (
-          <div className="text-gray-500 text-center py-4">You have no friends yet. Add some!</div>
+          <div className="text-gray-500 text-center py-4">
+            You have no friends yet. Add some!
+          </div>
         )}
       </div>
     </div>

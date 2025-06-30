@@ -14,13 +14,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
       links: [
         // Add your tRPC links here (e.g., httpBatchLink)
       ],
-    })
+    }),
   );
   return (
     <ClerkProvider>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        <QueryClientProvider client={queryClient}>
+          {children}
+        </QueryClientProvider>
       </trpc.Provider>
     </ClerkProvider>
   );
-} 
+}

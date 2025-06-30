@@ -44,7 +44,11 @@ export const friendsRouter = router({
     .input(z.object({ friendshipId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const request = await ctx.prisma.friendship.findUnique({
-        where: { id: input.friendshipId, friendId: ctx.userId, status: "pending" },
+        where: {
+          id: input.friendshipId,
+          friendId: ctx.userId,
+          status: "pending",
+        },
       });
 
       if (!request) {
@@ -65,7 +69,11 @@ export const friendsRouter = router({
     .input(z.object({ friendshipId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const request = await ctx.prisma.friendship.findUnique({
-        where: { id: input.friendshipId, friendId: ctx.userId, status: "pending" },
+        where: {
+          id: input.friendshipId,
+          friendId: ctx.userId,
+          status: "pending",
+        },
       });
 
       if (!request) {
@@ -95,7 +103,7 @@ export const friendsRouter = router({
     });
 
     // Map friendships to a more usable format
-    return friendships.map(f => {
+    return friendships.map((f) => {
       const friendDetails = f.userId === ctx.userId ? f.friend : f.user;
       return {
         friendshipId: f.id,

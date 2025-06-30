@@ -20,17 +20,18 @@ export default function AddHabitForm() {
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
-  const { mutate: createHabit, isLoading } = trpc.habitTracker.create.useMutation({
-    onSuccess: () => {
-      setName("");
-      setEmoji("");
-      setFrequency("daily");
-      utils.habitTracker.list.invalidate();
-    },
-    onError: (error: any) => {
-      setError(error.message);
-    },
-  });
+  const { mutate: createHabit, isLoading } =
+    trpc.habitTracker.create.useMutation({
+      onSuccess: () => {
+        setName("");
+        setEmoji("");
+        setFrequency("daily");
+        utils.habitTracker.list.invalidate();
+      },
+      onError: (error: any) => {
+        setError(error.message);
+      },
+    });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,13 +87,9 @@ export default function AddHabitForm() {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full"
-      >
+      <Button type="submit" disabled={isLoading} className="w-full">
         {isLoading ? "Adding..." : "Add Habit"}
       </Button>
     </form>
   );
-} 
+}

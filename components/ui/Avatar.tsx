@@ -15,19 +15,29 @@ function getAvatarProps(emailOrName: string) {
     .map((s) => s[0]?.toUpperCase() || "")
     .join("")
     .slice(0, 2);
-  const color = `hsl(${emailOrName.length * 37 % 360}, 70%, 60%)`;
+  const color = `hsl(${(emailOrName.length * 37) % 360}, 70%, 60%)`;
   return { initials, color };
 }
 
-export function Avatar({ emailOrName, size = 36, className = "", ariaLabel }: AvatarProps) {
+export function Avatar({
+  emailOrName,
+  size = 36,
+  className = "",
+  ariaLabel,
+}: AvatarProps) {
   const { initials, color } = getAvatarProps(emailOrName);
   return (
     <span
       className={`inline-flex items-center justify-center rounded-full font-bold text-white ${className}`}
-      style={{ background: color, width: size, height: size, fontSize: size * 0.5 }}
+      style={{
+        background: color,
+        width: size,
+        height: size,
+        fontSize: size * 0.5,
+      }}
       aria-label={ariaLabel || `Avatar for ${emailOrName}`}
     >
       {initials}
     </span>
   );
-} 
+}

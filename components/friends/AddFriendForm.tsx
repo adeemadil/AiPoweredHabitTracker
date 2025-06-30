@@ -11,12 +11,22 @@ interface AddFriendFormProps {
   loading?: boolean;
 }
 
-export default function AddFriendForm({ value, onChange, onSubmit, loading }: AddFriendFormProps) {
+export default function AddFriendForm({
+  value,
+  onChange,
+  onSubmit,
+  loading,
+}: AddFriendFormProps) {
   return (
-    <form onSubmit={onSubmit} className="mb-8 p-4 border rounded shadow bg-white dark:bg-gray-800">
+    <form
+      onSubmit={onSubmit}
+      className="mb-8 p-4 border rounded shadow bg-white dark:bg-gray-800"
+    >
       <h2 className="text-xl font-semibold mb-4">Add a Friend</h2>
       <div className="flex gap-2 items-center">
-        <Label htmlFor="friend-email" className="sr-only">Friend's email</Label>
+        <Label htmlFor="friend-email" className="sr-only">
+          Friend's email
+        </Label>
         <Input
           id="friend-email"
           type="email"
@@ -26,8 +36,10 @@ export default function AddFriendForm({ value, onChange, onSubmit, loading }: Ad
           aria-label="Friend's email"
           required
         />
-        <Button type="submit" disabled={loading}>{loading ? "Sending..." : "Send Request"}</Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? "Sending..." : "Send Request"}
+        </Button>
       </div>
     </form>
   );
-} 
+}

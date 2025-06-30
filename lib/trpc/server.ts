@@ -7,4 +7,4 @@ export const appRouter = router({
   friends: friendsRouter, // Mount the friends router
 });
 
-export type AppRouter = typeof appRouter; 
+export type AppRouter = typeof appRouter;

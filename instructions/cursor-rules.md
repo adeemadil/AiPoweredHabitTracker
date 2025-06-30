@@ -6,15 +6,17 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 1. General Cursor Behavior
 
-- **Default Cursor:**  
+- **Default Cursor:**
+
   - Used on all non-interactive elements and background areas.
   - Appearance: Default arrow pointer.
 
-- **Pointer Cursor:**  
+- **Pointer Cursor:**
+
   - Used on clickable elements such as buttons, links, habit cards, friend list items, and navigation items (including sidebar).
   - Appearance: Hand pointer.
 
-- **Text Cursor (I-beam):**  
+- **Text Cursor (I-beam):**
   - Used on all input fields, text areas, and editable text components.
   - Appearance: Vertical bar.
 
@@ -22,7 +24,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 2. Disabled Elements
 
-- **Disabled Buttons (e.g., Send Cheers to Self, Remove Friend when not allowed):**  
+- **Disabled Buttons (e.g., Send Cheers to Self, Remove Friend when not allowed):**
   - Cursor: `not-allowed` (circle with a line through it).
   - Tooltip explaining why the action is disabled appears on hover.
   - Visual style: Grayed out or reduced opacity.
@@ -32,7 +34,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 3. Loading States
 
-- **Loading Buttons or Actions:**  
+- **Loading Buttons or Actions:**
   - Cursor: `wait` (spinning wheel or hourglass).
   - Prevents multiple clicks during async operations.
 
@@ -40,7 +42,7 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## 4. Drag & Drop (If Implemented)
 
-- **Draggable Items (e.g., rearranging habits):**  
+- **Draggable Items (e.g., rearranging habits):**
   - Cursor: `grab` when hovering.
   - Cursor: `grabbing` while dragging.
 
@@ -72,14 +74,14 @@ This document defines the cursor behavior rules for the AI-Powered Habit Tracker
 
 ## Summary Table
 
-| Element/State               | Cursor Type   | Notes                                  |
-|----------------------------|---------------|---------------------------------------|
+| Element/State              | Cursor Type   | Notes                                  |
+| -------------------------- | ------------- | -------------------------------------- |
 | Default background         | default       | Non-interactive areas                  |
 | Clickable buttons/links    | pointer       | Habit cards, navigation, friend items  |
-| Input fields/text areas    | text          | Editable text                         |
+| Input fields/text areas    | text          | Editable text                          |
 | Disabled buttons           | not-allowed   | Disabled actions with tooltip/feedback |
-| Loading actions            | wait          | Async operations                      |
-| Draggable items (optional) | grab/grabbing | Drag and drop UI                      |
+| Loading actions            | wait          | Async operations                       |
+| Draggable items (optional) | grab/grabbing | Drag and drop UI                       |
 
 ---
 

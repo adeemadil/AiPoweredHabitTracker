@@ -26,10 +26,11 @@ export default function HabitCard({ habit }: HabitCardProps) {
   const { user } = useUser();
   const currentUserId = user?.id;
 
-  const { data: cheers, isLoading: isLoadingCheers } = trpc.habitTracker.listCheers.useQuery(
-    { habitId: habit.id },
-    { enabled: !!habit.id }
-  );
+  const { data: cheers, isLoading: isLoadingCheers } =
+    trpc.habitTracker.listCheers.useQuery(
+      { habitId: habit.id },
+      { enabled: !!habit.id },
+    );
 
   const { mutate: completeHabit } = trpc.habitTracker.complete.useMutation({
     onSuccess: () => {
@@ -42,9 +43,13 @@ export default function HabitCard({ habit }: HabitCardProps) {
     onSuccess: () => {
       toast.success("Cheer sent!", {
         style: {
-          borderRadius: '8px', background: '#333', color: '#fff', fontSize: '0.95rem', padding: '12px 20px',
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+          fontSize: "0.95rem",
+          padding: "12px 20px",
         },
-        icon: '👏',
+        icon: "👏",
       });
       utils.habitTracker.listCheers.invalidate({ habitId: habit.id });
       setShowCheersModal(false);
@@ -53,9 +58,13 @@ export default function HabitCard({ habit }: HabitCardProps) {
     onError: (error) => {
       toast.error(error.message || "You can only send cheers to friends.", {
         style: {
-          borderRadius: '8px', background: '#333', color: '#fff', fontSize: '0.95rem', padding: '12px 20px',
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+          fontSize: "0.95rem",
+          padding: "12px 20px",
         },
-        icon: '🚫',
+        icon: "🚫",
       });
     },
   });
@@ -70,13 +79,21 @@ export default function HabitCard({ habit }: HabitCardProps) {
     if (!habit.userId || habit.userId === currentUserId) {
       toast.error("You can't send cheers to yourself!", {
         style: {
-          borderRadius: '8px', background: '#333', color: '#fff', fontSize: '0.95rem', padding: '12px 20px',
+          borderRadius: "8px",
+          background: "#333",
+          color: "#fff",
+          fontSize: "0.95rem",
+          padding: "12px 20px",
         },
-        icon: '🚫',
+        icon: "🚫",
       });
       return;
     }
-    sendCheer({ habitId: habit.id, receiverId: habit.userId, message: cheerMessage });
+    sendCheer({
+      habitId: habit.id,
+      receiverId: habit.userId,
+      message: cheerMessage,
+    });
   };
 
   const isCompletedToday = habit.lastCompleted
@@ -137,4 +154,4 @@ export default function HabitCard({ habit }: HabitCardProps) {
       )}
     </div>
   );
-} 
+}

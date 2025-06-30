@@ -11,4 +11,4 @@ export function Label({ children, className = "", ...props }: LabelProps) {
       {children}
     </label>
   );
-} 
+}
