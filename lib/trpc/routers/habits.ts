@@ -29,7 +29,7 @@ export const habitsRouter = router({
       z.object({
         name: z.string().min(1),
         emoji: z.string().optional(),
-        frequency: z.enum(["daily", "weekly"]),
+        frequency: z.enum(["daily", "weekly", "monthly"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {

@@ -36,7 +36,7 @@ export function Modal({ open, onClose, children, className = "" }: ModalProps) {
       onClick={onClose}
     >
       <div
-        className={`bg-white dark:bg-gray-800 rounded-lg shadow-xl p-6 max-w-md w-full ${className}`}
+        className={className}
         ref={modalRef}
         tabIndex={0}
         onClick={(e) => e.stopPropagation()}

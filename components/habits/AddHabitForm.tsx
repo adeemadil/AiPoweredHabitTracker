@@ -11,13 +11,13 @@ import { Spinner } from "@/components/ui/Spinner";
 const habitSchema = z.object({
   name: z.string().min(1, "Habit name is required"),
   emoji: z.string().optional(),
-  frequency: z.enum(["daily", "weekly"]).default("daily"),
+  frequency: z.enum(["daily", "weekly", "monthly"]).default("daily"),
 });
 
 export default function AddHabitForm() {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
-  const [frequency, setFrequency] = useState<"daily" | "weekly">("daily");
+  const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">("daily");
   const [error, setError] = useState("");
 
   const utils = trpc.useUtils();
@@ -54,53 +54,57 @@ export default function AddHabitForm() {
   const isFormValid = habitSchema.safeParse({ name, emoji, frequency }).success;
 
   return (
-    <form onSubmit={handleSubmit} className="card space-y-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-7 w-full max-w-lg mx-auto p-0" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
+      <h2 className="text-2xl font-bold text-center mb-2" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700 }}>Add New Habit</h2>
       <div>
-        <Label htmlFor="name">Habit Name</Label>
+        <Label htmlFor="name" className="mb-2">Habit Name</Label>
         <Input
           type="text"
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g., Morning Meditation"
+          placeholder="Enter habit name"
           required
+          className="text-lg bg-blue-50 placeholder:font-semibold placeholder:text-blue-300 rounded-2xl py-4 px-5 focus:ring-2 focus:ring-blue-400 border-none shadow-sm"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         />
       </div>
-
       <div>
-        <Label htmlFor="emoji">Emoji (optional)</Label>
+        <Label htmlFor="emoji" className="mb-2">Emoji (Optional)</Label>
         <Input
           type="text"
           id="emoji"
           value={emoji}
           onChange={(e) => setEmoji(e.target.value)}
-          placeholder="e.g., 🧘‍♂️"
+          placeholder="Choose emoji"
+          className="text-lg bg-yellow-50 placeholder:font-semibold placeholder:text-yellow-300 rounded-2xl py-4 px-5 focus:ring-2 focus:ring-yellow-400 border-none shadow-sm"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         />
       </div>
-
       <div>
-        <Label htmlFor="frequency">Frequency</Label>
+        <Label htmlFor="frequency" className="mb-2">Frequency</Label>
         <select
           id="frequency"
           value={frequency}
-          onChange={(e) => setFrequency(e.target.value as "daily" | "weekly")}
-          className="input"
+          onChange={(e) => setFrequency(e.target.value as "daily" | "weekly" | "monthly")}
+          className="text-lg bg-purple-50 rounded-2xl py-4 px-5 focus:ring-2 focus:ring-purple-400 border-none shadow-sm w-full font-semibold"
+          style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
         >
           <option value="daily">Daily</option>
           <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
         </select>
       </div>
-
       {error && (
-        <p className="text-red-500 text-sm animate-fade-in">{error}</p>
+        <p className="text-red-500 text-sm animate-fade-in text-center">{error}</p>
       )}
-
       <Button
         type="submit"
         disabled={!isFormValid || status === "loading"}
-        className={`w-full transition-opacity duration-200 ${!isFormValid || status === "loading" ? "opacity-50 cursor-not-allowed" : ""}`}
+        className={`w-full py-4 text-lg rounded-full font-bold bg-blue-500 hover:bg-blue-600 text-white shadow-md transition-all ${!isFormValid || status === "loading" ? "opacity-50 cursor-not-allowed" : ""}`}
+        style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
       >
-        {status === "loading" ? <Spinner className="w-5 h-5" /> : "Add Habit"}
+        {status === "loading" ? <Spinner className="w-6 h-6" /> : "Add Habit"}
       </Button>
     </form>
   );

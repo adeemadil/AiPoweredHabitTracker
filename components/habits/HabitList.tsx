@@ -5,6 +5,7 @@ import HabitCard from "./HabitCard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Habit } from "@/types/habit";
+import HabitGroupSection from "./HabitGroupSection";
 
 const HABIT_CACHE_KEY = "habitCache";
 const HABIT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -69,20 +70,6 @@ export default function HabitList() {
   const weekly = habitsToShow.filter((h) => h.frequency === "weekly");
   const monthly = habitsToShow.filter((h) => h.frequency === "monthly");
 
-  function renderGroup(title: string, group: Habit[]) {
-    if (group.length === 0) return null;
-    return (
-      <div className="mb-10">
-        <h2 className="text-xl font-semibold mb-4 mt-2">{title}</h2>
-        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-          {group.map((habit) => (
-            <HabitCard key={habit.id} habit={habit} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
   if (!habitsToShow.length) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center min-h-[40vh] text-gray-500 dark:text-gray-400">
@@ -116,9 +103,9 @@ export default function HabitList() {
 
   return (
     <div>
-      {renderGroup("Daily", daily)}
-      {renderGroup("Weekly", weekly)}
-      {renderGroup("Monthly", monthly)}
+      <HabitGroupSection title="Daily" habits={daily} />
+      <HabitGroupSection title="Weekly" habits={weekly} />
+      <HabitGroupSection title="Monthly" habits={monthly} />
     </div>
   );
 }
