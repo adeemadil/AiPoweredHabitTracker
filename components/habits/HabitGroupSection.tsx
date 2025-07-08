@@ -9,7 +9,11 @@ interface HabitGroupSectionProps {
 }
 
 export default function HabitGroupSection({ title, habits }: HabitGroupSectionProps) {
-  if (!habits.length) return null;
+  // Move hooks to top level
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [showLeft, setShowLeft] = useState(false);
+  const [showRight, setShowRight] = useState(false);
+
   // Sort habits by streak descending
   const sortedHabits = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0));
   // Determine scroll threshold based on group
@@ -22,10 +26,6 @@ export default function HabitGroupSection({ title, habits }: HabitGroupSectionPr
   if (sortedHabits.length === 2) gridCols = "grid-cols-1 sm:grid-cols-2";
   else if (sortedHabits.length === 3) gridCols = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
   else if (sortedHabits.length >= 4) gridCols = "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeft, setShowLeft] = useState(false);
-  const [showRight, setShowRight] = useState(false);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -43,6 +43,8 @@ export default function HabitGroupSection({ title, habits }: HabitGroupSectionPr
       window.removeEventListener("resize", updateIndicators);
     };
   }, []);
+
+  if (!habits.length) return null;
 
   return (
     <section className="mb-14">
