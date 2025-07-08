@@ -30,13 +30,23 @@ export const friendsRouter = router({
         });
       }
 
-      return ctx.prisma.friendship.create({
+      const friendship = await ctx.prisma.friendship.create({
         data: {
           userId: ctx.userId,
           friendId: input.friendId,
           status: "pending",
         },
       });
+      // Create notification for the recipient
+      await ctx.prisma.notification.create({
+        data: {
+          userId: input.friendId,
+          type: "FRIEND_REQUEST",
+          message: `You have a new friend request!`,
+          relatedEntityId: friendship.id,
+        },
+      });
+      return friendship;
     }),
 
   // Accept a friend request
@@ -58,10 +68,20 @@ export const friendsRouter = router({
         });
       }
 
-      return ctx.prisma.friendship.update({
+      const updated = await ctx.prisma.friendship.update({
         where: { id: input.friendshipId },
         data: { status: "accepted" },
       });
+      // Notify the sender that their request was accepted
+      await ctx.prisma.notification.create({
+        data: {
+          userId: updated.userId,
+          type: "REQUEST_ACCEPTED",
+          message: `Your friend request was accepted!`,
+          relatedEntityId: updated.id,
+        },
+      });
+      return updated;
     }),
 
   // Decline a friend request
@@ -83,10 +103,20 @@ export const friendsRouter = router({
         });
       }
 
-      return ctx.prisma.friendship.update({
+      const declined = await ctx.prisma.friendship.update({
         where: { id: input.friendshipId },
         data: { status: "declined" },
       });
+      // Notify the sender that their request was declined
+      await ctx.prisma.notification.create({
+        data: {
+          userId: declined.userId,
+          type: "REQUEST_DECLINED",
+          message: `Your friend request was declined.`,
+          relatedEntityId: declined.id,
+        },
+      });
+      return declined;
     }),
 
   // List friends

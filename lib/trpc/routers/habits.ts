@@ -141,7 +141,7 @@ export const habitsRouter = router({
         });
       }
 
-      return ctx.prisma.cheer.create({
+      const cheer = await ctx.prisma.cheer.create({
         data: {
           senderId: ctx.userId,
           receiverId: input.receiverId,
@@ -149,6 +149,16 @@ export const habitsRouter = router({
           message: input.message,
         },
       });
+      // Create notification for the receiver
+      await ctx.prisma.notification.create({
+        data: {
+          userId: input.receiverId,
+          type: "NEW_CHEER",
+          message: `You received a cheer on your habit!`,
+          relatedEntityId: cheer.id,
+        },
+      });
+      return cheer;
     }),
 
   // List cheers for a habit
