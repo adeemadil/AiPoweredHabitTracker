@@ -5,6 +5,8 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc/init";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
+import { Pencil, Trash2 } from "lucide-react";
+import { useEffect } from "react";
 
 function getCardColor(frequency?: string) {
   switch ((frequency || "daily").toLowerCase()) {
@@ -49,31 +51,63 @@ export default function HabitCard({ habit }: { habit: Habit }) {
   const pastel = getCardColor(habit.frequency);
   const isComplete = habit.streak > 0;
   const [loading, setLoading] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const utils = trpc.useUtils();
   const completeHabit = trpc.habitTracker.complete.useMutation({
     onSuccess: () => utils.habitTracker.list.invalidate(),
     onSettled: () => setLoading(false),
+  });
+  const deleteHabit = trpc.habitTracker.delete.useMutation({
+    onSuccess: () => utils.habitTracker.list.invalidate(),
   });
 
   const handleComplete = () => {
     setLoading(true);
     completeHabit.mutate({ habitId: habit.id });
   };
+  const handleEdit = () => setShowEdit(true); // Stub: open edit modal
+  const handleDelete = () => setShowDelete(true); // Stub: open confirm modal
+  const confirmDelete = () => {
+    deleteHabit.mutate({ habitId: habit.id });
+    setShowDelete(false);
+  };
 
   return (
     <div
-      className={`flex flex-col rounded-3xl shadow-lg ${pastel} overflow-hidden h-full min-h-[320px] transition-none select-none group`}
-      style={{ minWidth: 0, fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+      className={`relative flex flex-col rounded-3xl shadow-lg ${pastel} overflow-hidden h-full min-h-[320px] transition-none select-none group`}
+      style={{
+        minWidth: 0,
+        fontFamily: 'Plus Jakarta Sans, sans-serif',
+      }}
       tabIndex={-1}
       aria-label={habit.name}
     >
+      {/* Edit/Delete icon buttons (hover/focus) */}
+      <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 z-10">
+        <button
+          aria-label="Edit Habit"
+          tabIndex={0}
+          className="bg-white/90 hover:bg-blue-100 rounded-full p-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+          onClick={handleEdit}
+        >
+          <Pencil className="w-5 h-5 text-blue-600" />
+        </button>
+        <button
+          aria-label="Delete Habit"
+          tabIndex={0}
+          className="bg-white/90 hover:bg-red-100 rounded-full p-2 shadow focus:outline-none focus:ring-2 focus:ring-red-400"
+          onClick={handleDelete}
+        >
+          <Trash2 className="w-5 h-5 text-red-600" />
+        </button>
+      </div>
       {/* Emoji or SVG illustration */}
-      <div className="w-full h-40 flex items-center justify-center bg-white/0 overflow-hidden text-6xl select-none">
+      <div className="w-full h-40 flex items-center justify-center bg-white/0 overflow-hidden text-6xl select-none relative">
         {habit.emoji ? (
-          <span role="img" aria-label="Habit emoji" className="text-7xl" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{habit.emoji}</span>
-        ) : (
-          <HabitIcon type={habit.name} size={120} />
-        )}
+          <span role="img" aria-label="Habit emoji" className="text-7xl absolute inset-0 flex items-center justify-center z-10 animate-fade-in" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}>{habit.emoji}</span>
+        ) : null}
+        <HabitIcon type={habit.name} size={120} className={habit.emoji ? 'opacity-60' : ''} />
       </div>
       {/* Streak badge */}
       <div className="flex justify-center mt-2 mb-1">
@@ -101,6 +135,32 @@ export default function HabitCard({ habit }: { habit: Habit }) {
           </Button>
         )}
       </div>
+      {/* Edit Modal (stub) */}
+      {showEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full flex flex-col items-center">
+            <h2 className="text-xl font-bold mb-4">Edit Habit</h2>
+            <div className="mb-4">(Edit form goes here)</div>
+            <div className="flex gap-4">
+              <Button variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
+              <Button variant="primary" onClick={() => setShowEdit(false)}>Save Changes</Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirm Modal (stub) */}
+      {showDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 animate-fade-in">
+          <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full flex flex-col items-center">
+            <h2 className="text-xl font-bold mb-4">Delete Habit</h2>
+            <div className="mb-4 text-center">Are you sure you want to delete the habit &lsquo;{habit.name}&rsquo;? This action cannot be undone.</div>
+            <div className="flex gap-4">
+              <Button variant="secondary" onClick={() => setShowDelete(false)}>Cancel</Button>
+              <Button variant="danger" onClick={confirmDelete}>Delete</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

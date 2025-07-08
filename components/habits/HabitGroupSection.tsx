@@ -9,6 +9,8 @@ interface HabitGroupSectionProps {
 
 export default function HabitGroupSection({ title, habits }: HabitGroupSectionProps) {
   if (!habits.length) return null;
+  // Sort habits by streak descending
+  const sortedHabits = [...habits].sort((a, b) => (b.streak || 0) - (a.streak || 0));
   // Determine grid columns based on habit count
   let gridCols = "grid-cols-1";
   if (habits.length === 2) gridCols = "grid-cols-1 sm:grid-cols-2";
@@ -18,7 +20,7 @@ export default function HabitGroupSection({ title, habits }: HabitGroupSectionPr
     <section className="mb-14">
       <h2 className="text-2xl font-bold mb-6 mt-2 text-left" style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 700 }}>{title}</h2>
       <div className={`grid gap-8 ${gridCols}`}>
-        {habits.map((habit) => (
+        {sortedHabits.map((habit) => (
           <HabitCard key={habit.id} habit={habit} />
         ))}
       </div>

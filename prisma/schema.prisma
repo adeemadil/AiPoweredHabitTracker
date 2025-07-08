@@ -34,6 +34,7 @@ model Habit {
   cheers      Cheer[] // Added relation to Cheer model
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  backgroundSvgUrl String? // URL for SVG background image
 
   @@index([userId])
 }
