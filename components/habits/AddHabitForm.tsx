@@ -14,7 +14,7 @@ const habitSchema = z.object({
   frequency: z.enum(["daily", "weekly", "monthly"]).default("daily"),
 });
 
-export default function AddHabitForm() {
+export default function AddHabitForm({ onSuccess }: { onSuccess?: () => void }) {
   const [name, setName] = useState("");
   const [emoji, setEmoji] = useState("");
   const [frequency, setFrequency] = useState<"daily" | "weekly" | "monthly">("daily");
@@ -31,6 +31,7 @@ export default function AddHabitForm() {
           localStorage.removeItem("habitCache");
         }
         utils.habitTracker.list.invalidate();
+        if (onSuccess) onSuccess();
       },
       onError: (error: any) => {
         setError(error.message);

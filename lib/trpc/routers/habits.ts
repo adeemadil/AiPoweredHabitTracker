@@ -214,6 +214,33 @@ export const habitsRouter = router({
       });
       return { success: true };
     }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        habitId: z.string(),
+        name: z.string().min(1),
+        emoji: z.string().optional(),
+        frequency: z.enum(["daily", "weekly", "monthly"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only allow updating own habit
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId },
+      });
+      if (!habit || habit.userId !== ctx.userId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Habit not found" });
+      }
+      return ctx.prisma.habit.update({
+        where: { id: input.habitId },
+        data: {
+          name: input.name.trim(),
+          emoji: input.emoji,
+          frequency: input.frequency,
+        },
+      });
+    }),
 });
 
 // Helper function to ensure user exists in database
