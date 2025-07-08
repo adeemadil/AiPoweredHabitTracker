@@ -10,7 +10,8 @@ export default function AddHabitButtonModal() {
     <>
       <Button
         variant="primary"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 rounded-full bg-blue-400 hover:bg-blue-500 text-white font-semibold px-6 py-2 shadow-sm transition-all" // more rounded, softer, lighter
+        style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 500, fontSize: '1rem' }}
         onClick={() => setOpen(true)}
         aria-label="Add Habit"
       >
