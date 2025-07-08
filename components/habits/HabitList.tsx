@@ -33,26 +33,9 @@ function setCachedHabits(data: any) {
 }
 
 export default function HabitList() {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [confirming, setConfirming] = useState(false);
-  const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
-  const { data: habits = [], isLoading, refetch } = trpc.habitTracker.list.useQuery<Habit[]>(undefined, {
+  const { data: habits = [], isLoading } = trpc.habitTracker.list.useQuery<Habit[]>(undefined, {
     onSuccess: (data) => setCachedHabits(data),
     initialData: getCachedHabits() || undefined,
-  });
-  const deleteHabit = trpc.habitTracker.delete.useMutation({
-    onSuccess: () => {
-      setSelected([]);
-      setHabitToDelete(null);
-      refetch();
-    },
-  });
-  const deleteMany = trpc.habitTracker.deleteMany.useMutation({
-    onSuccess: () => {
-      setSelected([]);
-      setConfirming(false);
-      refetch();
-    },
   });
 
   if (isLoading) {
@@ -68,10 +51,38 @@ export default function HabitList() {
     );
   }
 
+  // Group habits by frequency
+  const daily = habits.filter((h) => (h.frequency || "daily") === "daily");
+  const weekly = habits.filter((h) => h.frequency === "weekly");
+  const monthly = habits.filter((h) => h.frequency === "monthly");
+
+  function renderGroup(title: string, group: Habit[]) {
+    return (
+      <div className="mb-10">
+        <h2 className="text-xl font-semibold mb-4 mt-2">{title}</h2>
+        {group.length === 0 ? (
+          <div className="flex flex-col items-center justify-center min-h-[120px] text-gray-400">
+            <svg width="48" height="48" fill="none" viewBox="0 0 64 64" aria-hidden="true" className="mb-2">
+              <circle cx="32" cy="32" r="32" fill="#E0F2FE" />
+              <path d="M32 44c6-8 12-12 12-20a12 12 0 10-24 0c0 8 6 12 12 20z" fill="#38BDF8" />
+              <ellipse cx="32" cy="44" rx="6" ry="2" fill="#0284C7" opacity="0.3" />
+            </svg>
+            <div className="text-base">No {title.toLowerCase()} habits yet.</div>
+          </div>
+        ) : (
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+            {group.map((habit) => (
+              <HabitCard key={habit.id} habit={habit} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
   if (!habits?.length) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center min-h-[40vh] text-gray-500 dark:text-gray-400">
-        {/* Minimal illustration: plant/seedling SVG */}
         <svg
           width="64"
           height="64"
@@ -100,81 +111,11 @@ export default function HabitList() {
     );
   }
 
-  const handleSelect = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-  const handleDelete = (id: string) => {
-    setHabitToDelete(id);
-  };
-  const handleBulkDelete = () => {
-    setConfirming(true);
-  };
-  const confirmBulkDelete = () => {
-    deleteMany.mutate({ habitIds: selected });
-  };
-
   return (
     <div>
-      {selected.length > 0 && (
-        <div className="flex items-center gap-4 mb-4">
-          <span>{selected.length} selected</span>
-          <Button
-            variant="danger"
-            onClick={handleBulkDelete}
-            disabled={deleteMany.status === "loading"}
-          >
-            {deleteMany.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Bulk Delete"}
-          </Button>
-        </div>
-      )}
-      {confirming && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
-            <div className="mb-4">Are you sure you want to delete {selected.length} habits?</div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={() => setConfirming(false)} variant="secondary">Cancel</Button>
-              <Button onClick={confirmBulkDelete} variant="danger" disabled={deleteMany.status === "loading"}>
-                {deleteMany.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {habitToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
-            <div className="mb-4">Are you sure you want to delete this habit?</div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={() => setHabitToDelete(null)} variant="secondary">Cancel</Button>
-              <Button
-                onClick={() => deleteHabit.mutate({ habitId: habitToDelete })}
-                variant="danger"
-                disabled={deleteHabit.status === "loading"}
-              >
-                {deleteHabit.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {(habits as Habit[]).map((habit) => (
-          <div key={habit.id} className="relative group">
-            <div className="absolute top-2 left-2 z-10">
-              <input
-                type="checkbox"
-                checked={selected.includes(habit.id)}
-                onChange={() => handleSelect(habit.id)}
-                className="w-5 h-5 accent-primary-600 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                aria-label="Select habit"
-              />
-            </div>
-            <HabitCard habit={habit} onDelete={handleDelete} />
-          </div>
-        ))}
-      </div>
+      {renderGroup("Daily", daily)}
+      {renderGroup("Weekly", weekly)}
+      {renderGroup("Monthly", monthly)}
     </div>
   );
 }
