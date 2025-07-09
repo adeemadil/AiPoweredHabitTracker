@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc/init";
 import HabitCard from "./HabitCard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Habit } from "@/types/habit";
+import HabitGroupSection from "./HabitGroupSection";
 
 const HABIT_CACHE_KEY = "habitCache";
 const HABIT_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
@@ -33,29 +34,25 @@ function setCachedHabits(data: any) {
 }
 
 export default function HabitList() {
-  const [selected, setSelected] = useState<string[]>([]);
-  const [confirming, setConfirming] = useState(false);
-  const [habitToDelete, setHabitToDelete] = useState<string | null>(null);
-  const { data: habits = [], isLoading, refetch } = trpc.habitTracker.list.useQuery<Habit[]>(undefined, {
-    onSuccess: (data) => setCachedHabits(data),
-    initialData: getCachedHabits() || undefined,
-  });
-  const deleteHabit = trpc.habitTracker.delete.useMutation({
-    onSuccess: () => {
-      setSelected([]);
-      setHabitToDelete(null);
-      refetch();
-    },
-  });
-  const deleteMany = trpc.habitTracker.deleteMany.useMutation({
-    onSuccess: () => {
-      setSelected([]);
-      setConfirming(false);
-      refetch();
-    },
-  });
+  const [cached, setCached] = useState<Habit[] | null>(null);
+  const { data: habits, isLoading } = trpc.habitTracker.list.useQuery<Habit[]>();
 
-  if (isLoading) {
+  // On mount, set cached habits if available
+  useEffect(() => {
+    const cache = getCachedHabits();
+    if (cache) setCached(cache);
+  }, []);
+
+  // When habits are fetched, update cache
+  useEffect(() => {
+    if (habits) setCachedHabits(habits);
+  }, [habits]);
+
+  // Use habits from tRPC if available, else from cache
+  const habitsToShow = habits ?? cached ?? [];
+  const loading = isLoading && !cached;
+
+  if (loading) {
     return (
       <div className="grid gap-4">
         {[...Array(3)].map((_, i) => (
@@ -68,10 +65,14 @@ export default function HabitList() {
     );
   }
 
-  if (!habits?.length) {
+  // Group habits by frequency
+  const daily = habitsToShow.filter((h) => (h.frequency || "daily") === "daily");
+  const weekly = habitsToShow.filter((h) => h.frequency === "weekly");
+  const monthly = habitsToShow.filter((h) => h.frequency === "monthly");
+
+  if (!habitsToShow.length) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center min-h-[40vh] text-gray-500 dark:text-gray-400">
-        {/* Minimal illustration: plant/seedling SVG */}
         <svg
           width="64"
           height="64"
@@ -100,81 +101,11 @@ export default function HabitList() {
     );
   }
 
-  const handleSelect = (id: string) => {
-    setSelected((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
-  };
-  const handleDelete = (id: string) => {
-    setHabitToDelete(id);
-  };
-  const handleBulkDelete = () => {
-    setConfirming(true);
-  };
-  const confirmBulkDelete = () => {
-    deleteMany.mutate({ habitIds: selected });
-  };
-
   return (
     <div>
-      {selected.length > 0 && (
-        <div className="flex items-center gap-4 mb-4">
-          <span>{selected.length} selected</span>
-          <Button
-            variant="danger"
-            onClick={handleBulkDelete}
-            disabled={deleteMany.status === "loading"}
-          >
-            {deleteMany.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Bulk Delete"}
-          </Button>
-        </div>
-      )}
-      {confirming && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
-            <div className="mb-4">Are you sure you want to delete {selected.length} habits?</div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={() => setConfirming(false)} variant="secondary">Cancel</Button>
-              <Button onClick={confirmBulkDelete} variant="danger" disabled={deleteMany.status === "loading"}>
-                {deleteMany.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      {habitToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded shadow-lg">
-            <div className="mb-4">Are you sure you want to delete this habit?</div>
-            <div className="flex gap-2 justify-end">
-              <Button onClick={() => setHabitToDelete(null)} variant="secondary">Cancel</Button>
-              <Button
-                onClick={() => deleteHabit.mutate({ habitId: habitToDelete })}
-                variant="danger"
-                disabled={deleteHabit.status === "loading"}
-              >
-                {deleteHabit.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Delete"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {(habits as Habit[]).map((habit) => (
-          <div key={habit.id} className="relative group">
-            <div className="absolute top-2 left-2 z-10">
-              <input
-                type="checkbox"
-                checked={selected.includes(habit.id)}
-                onChange={() => handleSelect(habit.id)}
-                className="w-5 h-5 accent-primary-600 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                aria-label="Select habit"
-              />
-            </div>
-            <HabitCard habit={habit} onDelete={handleDelete} />
-          </div>
-        ))}
-      </div>
+      <HabitGroupSection title="Daily" habits={daily} />
+      <HabitGroupSection title="Weekly" habits={weekly} />
+      <HabitGroupSection title="Monthly" habits={monthly} />
     </div>
   );
 }

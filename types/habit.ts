@@ -6,4 +6,5 @@ export interface Habit {
   lastCompleted?: Date | null;
   userId: string;
   frequency?: string;
+  backgroundSvgUrl?: string; // URL for SVG background image
 } 

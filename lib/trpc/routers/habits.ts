@@ -29,7 +29,7 @@ export const habitsRouter = router({
       z.object({
         name: z.string().min(1),
         emoji: z.string().optional(),
-        frequency: z.enum(["daily", "weekly"]),
+        frequency: z.enum(["daily", "weekly", "monthly"]),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -141,7 +141,7 @@ export const habitsRouter = router({
         });
       }
 
-      return ctx.prisma.cheer.create({
+      const cheer = await ctx.prisma.cheer.create({
         data: {
           senderId: ctx.userId,
           receiverId: input.receiverId,
@@ -149,6 +149,16 @@ export const habitsRouter = router({
           message: input.message,
         },
       });
+      // Create notification for the receiver
+      await ctx.prisma.notification.create({
+        data: {
+          userId: input.receiverId,
+          type: "NEW_CHEER",
+          message: `You received a cheer on your habit!`,
+          relatedEntityId: cheer.id,
+        },
+      });
+      return cheer;
     }),
 
   // List cheers for a habit
@@ -203,6 +213,33 @@ export const habitsRouter = router({
         },
       });
       return { success: true };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        habitId: z.string(),
+        name: z.string().min(1),
+        emoji: z.string().optional(),
+        frequency: z.enum(["daily", "weekly", "monthly"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only allow updating own habit
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId },
+      });
+      if (!habit || habit.userId !== ctx.userId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Habit not found" });
+      }
+      return ctx.prisma.habit.update({
+        where: { id: input.habitId },
+        data: {
+          name: input.name.trim(),
+          emoji: input.emoji,
+          frequency: input.frequency,
+        },
+      });
     }),
 });
 
