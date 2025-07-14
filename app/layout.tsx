@@ -1,9 +1,9 @@
-import { ClerkProvider } from "@clerk/nextjs";
-import { Inter } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { TRPCProvider } from "@/components/TRPCProvider";
+import { Providers } from "./providers";
+import Topbar from "@/components/Topbar";
 
-const inter = Inter({ subsets: ["latin"] });
+const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400","500","700","800"] });
 
 export const metadata = {
   title: "AI-Powered Habit Tracker",
@@ -16,12 +16,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body className={inter.className}>
-          <TRPCProvider>{children}</TRPCProvider>
-        </body>
-      </html>
-    </ClerkProvider>
+    <html lang="en">
+      <body className={plusJakarta.className}>
+        {/* Providers wraps Clerk, tRPC, and QueryClient providers */}
+        <Providers>
+          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+            <Topbar />
+            <main className="flex flex-col items-center px-4 py-8 w-full max-w-6xl mx-auto">{children}</main>
+          </div>
+        </Providers>
+      </body>
+    </html>
   );
-} 
+}

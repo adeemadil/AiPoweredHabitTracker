@@ -6,7 +6,7 @@ export const habitsRouter = router({
   list: protectedProcedure.query(async ({ ctx }) => {
     // Ensure user exists in database
     await ensureUserExists(ctx.userId, ctx.prisma);
-    
+
     const habits = await ctx.prisma.habit.findMany({
       where: { userId: ctx.userId },
       include: {
@@ -29,16 +29,34 @@ export const habitsRouter = router({
       z.object({
         name: z.string().min(1),
         emoji: z.string().optional(),
-        frequency: z.enum(["daily", "weekly"]),
-      })
+        frequency: z.enum(["daily", "weekly", "monthly"]),
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Ensure user exists in database
       await ensureUserExists(ctx.userId, ctx.prisma);
-      
+
+      // Trim whitespace from name
+      const trimmedName = input.name.trim();
+
+      // Check for duplicate habit name (case-insensitive, trimmed)
+      const existing = await ctx.prisma.habit.findFirst({
+        where: {
+          userId: ctx.userId,
+          name: { equals: trimmedName, mode: "insensitive" },
+        },
+      });
+      if (existing) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "You already have a habit with this name.",
+        });
+      }
+
       return ctx.prisma.habit.create({
         data: {
           ...input,
+          name: trimmedName,
           userId: ctx.userId,
         },
       });
@@ -65,6 +83,161 @@ export const habitsRouter = router({
         data: {
           habitId: input.habitId,
           date: today,
+        },
+      });
+    }),
+
+  // Send a cheer for a habit
+  sendCheer: protectedProcedure
+    .input(
+      z.object({
+        habitId: z.string(),
+        receiverId: z.string(),
+        message: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Ensure the habit exists and belongs to the receiver
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId, userId: input.receiverId },
+      });
+
+      if (!habit) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Habit not found or does not belong to the receiver.",
+        });
+      }
+
+      // Ensure sender and receiver are friends
+      const friendship = await ctx.prisma.friendship.findFirst({
+        where: {
+          OR: [
+            {
+              userId: ctx.userId,
+              friendId: input.receiverId,
+              status: "accepted",
+            },
+            {
+              userId: input.receiverId,
+              friendId: ctx.userId,
+              status: "accepted",
+            },
+          ],
+        },
+      });
+
+      if (!friendship) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You can only send cheers to friends.",
+        });
+      }
+
+      if (ctx.userId === input.receiverId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "You cannot send a cheer to yourself.",
+        });
+      }
+
+      const cheer = await ctx.prisma.cheer.create({
+        data: {
+          senderId: ctx.userId,
+          receiverId: input.receiverId,
+          habitId: input.habitId,
+          message: input.message,
+        },
+      });
+      // Create notification for the receiver
+      await ctx.prisma.notification.create({
+        data: {
+          userId: input.receiverId,
+          type: "NEW_CHEER",
+          message: `You received a cheer on your habit!`,
+          relatedEntityId: cheer.id,
+        },
+      });
+      return cheer;
+    }),
+
+  // List cheers for a habit
+  listCheers: protectedProcedure
+    .input(z.object({ habitId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Ensure the habit exists and belongs to the current user
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId, userId: ctx.userId },
+      });
+
+      if (!habit) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Habit not found.",
+        });
+      }
+
+      return ctx.prisma.cheer.findMany({
+        where: { habitId: input.habitId },
+        include: {
+          sender: { select: { id: true, email: true } }, // Assuming email is available
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
+
+  // Delete a single habit
+  delete: protectedProcedure
+    .input(z.object({ habitId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Only allow deleting own habit
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId },
+      });
+      if (!habit || habit.userId !== ctx.userId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Habit not found" });
+      }
+      await ctx.prisma.habit.delete({ where: { id: input.habitId } });
+      return { success: true };
+    }),
+
+  // Bulk delete habits
+  deleteMany: protectedProcedure
+    .input(z.object({ habitIds: z.array(z.string().min(1)) }))
+    .mutation(async ({ ctx, input }) => {
+      // Only allow deleting own habits
+      await ctx.prisma.habit.deleteMany({
+        where: {
+          id: { in: input.habitIds },
+          userId: ctx.userId,
+        },
+      });
+      return { success: true };
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        habitId: z.string(),
+        name: z.string().min(1),
+        emoji: z.string().optional(),
+        frequency: z.enum(["daily", "weekly", "monthly"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only allow updating own habit
+      const habit = await ctx.prisma.habit.findUnique({
+        where: { id: input.habitId },
+      });
+      if (!habit || habit.userId !== ctx.userId) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Habit not found" });
+      }
+      return ctx.prisma.habit.update({
+        where: { id: input.habitId },
+        data: {
+          name: input.name.trim(),
+          emoji: input.emoji,
+          frequency: input.frequency,
         },
       });
     }),
@@ -119,4 +292,4 @@ export function calculateStreak(completions: { date: Date }[]) {
   }
 
   return streak;
-} 
+}

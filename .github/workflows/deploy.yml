@@ -1,38 +1,47 @@
 name: CI Pipeline
 
 on:
+  push:
+    branches: [main, dev]
   pull_request:
-    branches: [ main, dev ]
+    branches: [main, dev]
 
 jobs:
   build-and-test:
-    name: build-and-test
     runs-on: ubuntu-latest
+    environment: ${{ github.ref == 'refs/heads/main' || github.base_ref == 'main' && 'Production' || 'Preview' }}
     env:
-      # Use real secrets for push events, dummy for PRs
-      DATABASE_URL: ${{ secrets.DATABASE_URL}}
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
       CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
-          cache: 'npm'
+          cache: "npm"
+
       - name: Install dependencies
         run: npm install --legacy-peer-deps --silent
+
+      - name: Lint code
+        run: npm run lint
+
+      - name: Check code formatting
+        run: npm run format -- --check
+
       - name: Generate Prisma client
         run: npx prisma generate
-      # Only run migrations for push events (not PRs)
+
       - name: Run database migrations
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
         run: npx prisma migrate deploy
-      - name: Check for changes in UI or backend
+
+      - name: Check for UI/backend changes
         id: changes
         run: |
           git fetch origin ${{ github.base_ref }} --depth=1
@@ -41,9 +50,40 @@ jobs:
           else
             echo "changed=true" >> $GITHUB_OUTPUT
           fi
-      - name: Build Next.js app
+
+      - name: Build Next.js
         if: steps.changes.outputs.changed == 'true'
         run: npm run build
-      # Add test steps here if you have them
-      - name: Run tests
-        run: echo "No tests defined yet"
+
+      # 7. Run Vitest unit tests (only if test files exist)
+      - name: Run Vitest unit tests
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Only run if there are .test or .spec files in __tests__
+          if ls __tests__/*.{test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npm run test
+          else
+            echo "No unit test files found in __tests__, skipping Vitest."
+          fi
+
+      # 8. Install Playwright browsers (only if Playwright test files exist)
+      - name: Install Playwright Browsers
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Only run if there are Playwright test files in __tests__
+          if ls __tests__/*.{e2e,test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npx playwright install --with-deps
+          else
+            echo "No Playwright test files found in __tests__, skipping browser install."
+          fi
+
+      # 9. Run Playwright E2E tests (only if Playwright test files exist)
+      - name: Run Playwright E2E tests
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          # Only run if there are Playwright test files in __tests__
+          if ls __tests__/*.{e2e,test,spec}.[jt]s* 1> /dev/null 2>&1; then
+            npm run test:e2e
+          else
+            echo "No Playwright E2E test files found in __tests__, skipping Playwright tests."
+          fi
