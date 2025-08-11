@@ -30,11 +30,9 @@ export default function AddHabitButtonModal() {
           </button>
           {/* Illustration/icon at the top */}
           <div className="w-full flex justify-center pt-8 pb-2">
-            <svg width="72" height="72" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-              <circle cx="32" cy="32" r="32" fill="#E0F2FE" />
-              <path d="M32 44c6-8 12-12 12-20a12 12 0 10-24 0c0 8 6 12 12 20z" fill="#38BDF8" />
-              <ellipse cx="32" cy="44" rx="6" ry="2" fill="#0284C7" opacity="0.3" />
-            </svg>
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+              <Plus className="w-8 h-8 text-blue-500" />
+            </div>
           </div>
           <div className="w-full px-8 pb-10 pt-2 flex flex-col items-center">
             <AddHabitForm onSuccess={() => setOpen(false)} />

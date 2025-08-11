@@ -5,6 +5,7 @@ import HabitCard from "./HabitCard";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import { Habit } from "@/types/habit";
+import { Plus } from "lucide-react";
 import HabitGroupSection from "./HabitGroupSection";
 
 const HABIT_CACHE_KEY = "habitCache";
@@ -73,28 +74,9 @@ export default function HabitList() {
   if (!habitsToShow.length) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center min-h-[40vh] text-gray-500 dark:text-gray-400">
-        <svg
-          width="64"
-          height="64"
-          fill="none"
-          viewBox="0 0 64 64"
-          aria-hidden="true"
-          className="mb-4"
-        >
-          <circle cx="32" cy="32" r="32" fill="#E0F2FE" />
-          <path
-            d="M32 44c6-8 12-12 12-20a12 12 0 10-24 0c0 8 6 12 12 20z"
-            fill="#38BDF8"
-          />
-          <ellipse
-            cx="32"
-            cy="44"
-            rx="6"
-            ry="2"
-            fill="#0284C7"
-            opacity="0.3"
-          />
-        </svg>
+        <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+          <Plus className="w-8 h-8 text-blue-500" />
+        </div>
         <div className="text-lg font-medium mb-2">No habits yet.</div>
         <div className="text-base">Add your first habit to get started!</div>
       </div>

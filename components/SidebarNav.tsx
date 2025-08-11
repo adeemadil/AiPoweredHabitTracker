@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Menu, ListChecks, Users, Settings } from "lucide-react"; // Lucide icons
+import { Menu, ListChecks, Users, Settings, Trophy } from "lucide-react"; // Added Trophy icon
 
 export default function SidebarNav() {
   const pathname = usePathname();
@@ -18,6 +18,11 @@ export default function SidebarNav() {
       href: "/friends",
       label: "Friends",
       icon: <Users className="w-6 h-6" />,
+    },
+    {
+      href: "/challenges",
+      label: "Challenges",
+      icon: <Trophy className="w-6 h-6" />,
     },
     {
       href: "/settings",
