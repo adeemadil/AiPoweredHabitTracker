@@ -21,6 +21,7 @@ model User {
   cheersSent  Cheer[]      @relation("sentCheers")
   cheersReceived Cheer[]   @relation("receivedCheers")
   notifications Notification[] @relation("userNotifications")
+  settings    UserSettings?
 }
 
 model Habit {
@@ -91,6 +92,23 @@ model Notification {
   relatedEntityId String? // Optional: ID of the entity related to the notification (e.g., Friendship ID, Cheer ID)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                 String   @default("light") // "light", "dark", "system"
+  notificationsEnabled  Boolean  @default(true)
+  emailNotifications    Boolean  @default(true)
+  pushNotifications     Boolean  @default(true)
+  privacyLevel          String   @default("friends") // "public", "friends", "private"
+  timezone              String   @default("UTC")
+  language              String   @default("en")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
   @@index([userId])
 }

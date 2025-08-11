@@ -3,7 +3,8 @@ import { trpc } from "@/lib/trpc/init";
 import { Button } from "@/components/ui/Button";
 import { Spinner } from "@/components/ui/Spinner";
 import toast from "react-hot-toast";
-import { UserPlus, CheckCircle, XCircle, PartyPopper } from "lucide-react";
+import { UserPlus, CheckCircle, XCircle, PartyPopper, Trash2, MoreHorizontal } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 
 function getNotificationIcon(type: string) {
   switch (type) {
@@ -21,16 +22,74 @@ function getNotificationIcon(type: string) {
 }
 
 export default function NotificationPanel({ onClose }: { onClose: () => void }) {
+  const [showDeleteOptions, setShowDeleteOptions] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const deleteOptionsRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Close delete options when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (deleteOptionsRef.current && !deleteOptionsRef.current.contains(event.target as Node)) {
+        setShowDeleteOptions(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   const { data: notifications, isLoading } = trpc.notifications.list.useQuery();
+  
   const markAsRead = trpc.notifications.markAsRead.useMutation({
     onSuccess: () => utils.notifications.list.invalidate(),
     onError: () => toast.error("Failed to mark as read"),
   });
+  
   const markAllAsRead = trpc.notifications.markAllAsRead.useMutation({
     onSuccess: () => utils.notifications.list.invalidate(),
     onError: () => toast.error("Failed to mark all as read"),
   });
+
+  const deleteNotification = trpc.notifications.delete.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      toast.success("Notification deleted");
+    },
+    onError: () => toast.error("Failed to delete notification"),
+  });
+
+  const deleteAllRead = trpc.notifications.deleteAllRead.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      toast.success("All read notifications deleted");
+      setShowDeleteOptions(false);
+    },
+    onError: () => toast.error("Failed to delete notifications"),
+  });
+
+  const deleteOld = trpc.notifications.deleteOld.useMutation({
+    onSuccess: () => {
+      utils.notifications.list.invalidate();
+      utils.notifications.getUnreadCount.invalidate();
+      toast.success("Old notifications deleted");
+      setShowDeleteOptions(false);
+    },
+    onError: () => toast.error("Failed to delete old notifications"),
+  });
+
+  // Close delete options when there are no notifications
+  useEffect(() => {
+    if (notifications && notifications.length === 0) {
+      setShowDeleteOptions(false);
+    }
+  }, [notifications]);
 
   function handleView(n: any) {
     toast("Navigation to related entity coming soon!", { icon: "🚀" });
@@ -49,19 +108,65 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
           ×
         </button>
       </div>
-      <div className="mb-4 flex justify-end">
-        <Button
-          variant="primary"
-          onClick={() => markAllAsRead.mutate()}
-          disabled={markAllAsRead.status === "loading"}
-          className="rounded-full px-5 py-2 text-base font-semibold shadow-sm"
-          style={{ cursor: markAllAsRead.status === "loading" ? "wait" : "pointer", fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-        >
-          {markAllAsRead.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Mark all as read"}
-        </Button>
-      </div>
+             {notifications && notifications.length > 0 && (
+         <div className="mb-4 flex justify-between items-center">
+           <div className="relative" ref={deleteOptionsRef}>
+             <Button
+               variant="secondary"
+               onClick={() => setShowDeleteOptions(!showDeleteOptions)}
+               disabled={isLoading}
+               className="rounded-full px-4 py-2 text-sm font-semibold"
+               style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+             >
+               <MoreHorizontal className="w-4 h-4 mr-2" />
+               Manage
+             </Button>
+             
+             {showDeleteOptions && (
+               <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 min-w-48">
+                 <div className="p-2">
+                   <button
+                     onClick={() => deleteAllRead.mutate()}
+                     disabled={deleteAllRead.status === "loading"}
+                     className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     <Trash2 className="w-4 h-4 mr-2" />
+                     {deleteAllRead.status === "loading" ? "Deleting..." : "Delete all read"}
+                   </button>
+                   <button
+                     onClick={() => deleteOld.mutate({ days: 7 })}
+                     disabled={deleteOld.status === "loading"}
+                     className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     <Trash2 className="w-4 h-4 mr-2" />
+                     {deleteOld.status === "loading" ? "Deleting..." : "Delete older than 7 days"}
+                   </button>
+                   <button
+                     onClick={() => deleteOld.mutate({ days: 30 })}
+                     disabled={deleteOld.status === "loading"}
+                     className="w-full text-left px-3 py-2 text-sm text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                   >
+                     <Trash2 className="w-4 h-4 mr-2" />
+                     {deleteOld.status === "loading" ? "Deleting..." : "Delete older than 30 days"}
+                   </button>
+                 </div>
+               </div>
+             )}
+           </div>
+           
+           <Button
+             variant="primary"
+             onClick={() => markAllAsRead.mutate()}
+             disabled={markAllAsRead.status === "loading" || isLoading}
+             className="rounded-full px-5 py-2 text-base font-semibold shadow-sm"
+             style={{ cursor: (markAllAsRead.status === "loading" || isLoading) ? "wait" : "pointer", fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+           >
+             {markAllAsRead.status === "loading" ? <Spinner className="w-4 h-4 mr-2" /> : "Mark all as read"}
+           </Button>
+         </div>
+       )}
       <div className="max-h-96 overflow-y-auto">
-        {isLoading ? (
+        {!mounted || isLoading ? (
           <div className="flex justify-center py-8"><Spinner className="w-6 h-6" /></div>
         ) : notifications && notifications.length > 0 ? (
           <ul className="flex flex-col gap-4">
@@ -82,40 +187,54 @@ export default function NotificationPanel({ onClose }: { onClose: () => void }) 
                 </div>
                 {/* Unread blue dot */}
                 {!n.isRead && <span className="w-3 h-3 rounded-full bg-blue-500 mr-2" aria-label="Unread notification"></span>}
-                {/* Mark as read button */}
-                {!n.isRead && (
+                {/* Action buttons */}
+                <div className="flex gap-2">
+                  {/* Mark as read button */}
+                  {!n.isRead && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => markAsRead.mutate({ notificationId: n.id })}
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ cursor: markAsRead.status === "loading" ? "wait" : "pointer", fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                      aria-label="Mark as read"
+                    >
+                      Read
+                    </Button>
+                  )}
+                  
+                  {/* Delete button */}
                   <Button
                     variant="secondary"
-                    onClick={() => markAsRead.mutate({ notificationId: n.id })}
-                    className="rounded-full px-4 py-1 text-sm font-semibold ml-2"
-                    style={{ cursor: markAsRead.status === "loading" ? "wait" : "pointer", fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                    aria-label="Mark as read"
-                  >
-                    Mark as read
-                  </Button>
-                )}
-                {/* View button for actionable notifications */}
-                {n.relatedEntityId && (
-                  <Button
-                    variant="primary"
-                    onClick={() => handleView(n)}
-                    className="rounded-full px-4 py-1 text-sm font-semibold ml-2"
+                    onClick={() => deleteNotification.mutate({ notificationId: n.id })}
+                    disabled={deleteNotification.status === "loading"}
+                    className="rounded-full px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50 border-red-200"
                     style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
-                    aria-label="View related"
+                    aria-label="Delete notification"
                   >
-                    View
+                    <Trash2 className="w-3 h-3" />
                   </Button>
-                )}
+                  
+                  {/* View button for actionable notifications */}
+                  {n.relatedEntityId && (
+                    <Button
+                      variant="primary"
+                      onClick={() => handleView(n)}
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ fontFamily: 'Plus Jakarta Sans, sans-serif' }}
+                      aria-label="View related"
+                    >
+                      View
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-gray-500">
-            <svg width="72" height="72" viewBox="0 0 64 64" fill="none" aria-hidden="true" className="mb-4">
-              <rect x="8" y="16" width="48" height="32" rx="12" fill="#bae6fd" />
-              <circle cx="32" cy="32" r="12" fill="#38bdf8" />
-              <ellipse cx="32" cy="48" rx="10" ry="3" fill="#0284c7" opacity="0.15" />
-            </svg>
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-blue-500" />
+            </div>
             <div className="text-lg font-medium mb-1">All caught up!</div>
             <div className="text-base">You’ve read all your notifications. Check back later for updates.</div>
           </div>
