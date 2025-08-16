@@ -34,12 +34,27 @@ interface ChallengeSuggestion {
 }
 
 export default function ChallengesPage() {
+  const [mounted, setMounted] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    type: 'STREAK_BASED' as const,
+    difficulty: 'EASY' as const,
+    duration: 7,
+    isPublic: true,
+    maxParticipants: 10
+  });
   const [showAISuggestions, setShowAISuggestions] = useState(false);
   const [selectedSuggestion, setSelectedSuggestion] = useState<ChallengeSuggestion | null>(null);
   const [activeTab, setActiveTab] = useState<'available' | 'participating' | 'created'>('available');
+  const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
   
   const utils = trpc.useUtils();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Queries
   const { data: availableChallenges, isLoading: loadingAvailable } = trpc.challenges.list.useQuery();
@@ -81,6 +96,27 @@ export default function ChallengesPage() {
       toast.success("Challenge created successfully!");
       setShowAISuggestions(false);
       setSelectedSuggestion(null);
+      utils.challenges.myCreated.invalidate();
+      utils.challenges.list.invalidate();
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const createChallenge = trpc.challenges.create.useMutation({
+    onSuccess: () => {
+      toast.success("Challenge created successfully!");
+      setShowCreateModal(false);
+      setCreateForm({
+        title: '',
+        description: '',
+        type: 'STREAK_BASED',
+        difficulty: 'EASY',
+        duration: 7,
+        isPublic: true,
+        maxParticipants: 10
+      });
       utils.challenges.myCreated.invalidate();
       utils.challenges.list.invalidate();
     },
@@ -236,6 +272,16 @@ export default function ChallengesPage() {
     </div>
   );
 
+  if (!mounted) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-center py-8">
+          <Spinner className="w-8 h-8" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-8">
@@ -252,6 +298,7 @@ export default function ChallengesPage() {
             variant="secondary"
             onClick={async () => {
               try {
+                setIsFetchingSuggestions(true);
                 console.log('Fetching AI suggestions...');
                 await refetchSuggestions();
                 console.log('AI suggestions fetched:', aiSuggestions);
@@ -259,11 +306,13 @@ export default function ChallengesPage() {
               } catch (error) {
                 console.error('Error fetching AI suggestions:', error);
                 toast.error('Failed to fetch AI suggestions. Please try again.');
+              } finally {
+                setIsFetchingSuggestions(false);
               }
             }}
-            disabled={loadingSuggestions}
+            disabled={isFetchingSuggestions}
           >
-            {loadingSuggestions ? <Spinner className="w-4 h-4 mr-2" /> : <Brain className="w-4 h-4 mr-2" />}
+            {isFetchingSuggestions ? <Spinner className="w-4 h-4 mr-2" /> : <Brain className="w-4 h-4 mr-2" />}
             AI Suggestions
           </Button>
           <Button
@@ -283,7 +332,7 @@ export default function ChallengesPage() {
             <Sparkles className="w-5 h-5 text-purple-500" />
             AI-Powered Challenge Suggestions
           </h2>
-          {loadingSuggestions ? (
+          {isFetchingSuggestions ? (
             <div className="flex justify-center py-8">
               <Spinner className="w-8 h-8" />
             </div>
@@ -383,15 +432,16 @@ export default function ChallengesPage() {
 
       {/* AI Suggestion Confirmation Modal */}
       <Modal
-        isOpen={showAISuggestions && !!selectedSuggestion}
-        onClose={() => {
-          setShowAISuggestions(false);
-          setSelectedSuggestion(null);
-        }}
-        title="Create AI-Generated Challenge"
-      >
-        {selectedSuggestion && (
-          <div className="space-y-4">
+         open={showAISuggestions && !!selectedSuggestion}
+         onClose={() => {
+           setShowAISuggestions(false);
+           setSelectedSuggestion(null);
+         }}
+               >
+          {selectedSuggestion && (
+            <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+              <h2 className="text-xl font-semibold mb-4">Create AI-Generated Challenge</h2>
+              <div className="space-y-4">
             <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
               <h3 className="font-semibold text-purple-800 dark:text-purple-200 mb-2">
                 {selectedSuggestion.title}
@@ -437,8 +487,121 @@ export default function ChallengesPage() {
               </Button>
             </div>
           </div>
-        )}
-      </Modal>
-    </div>
-  );
+        </div>
+      )}
+    </Modal>
+
+    {/* Create Challenge Modal */}
+    <Modal
+      open={showCreateModal}
+      onClose={() => setShowCreateModal(false)}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
+        <h2 className="text-xl font-semibold mb-4">Create New Challenge</h2>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Title</label>
+            <Input
+              value={createForm.title}
+              onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+              placeholder="Enter challenge title"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <Textarea
+              value={createForm.description}
+              onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+              placeholder="Describe your challenge"
+              rows={3}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Type</label>
+              <select
+                value={createForm.type}
+                onChange={(e) => setCreateForm({ ...createForm, type: e.target.value as any })}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+              >
+                <option value="STREAK_BASED">Streak Based</option>
+                <option value="FREQUENCY_BASED">Frequency Based</option>
+                <option value="TIME_BASED">Time Based</option>
+                <option value="SOCIAL_BASED">Social Based</option>
+                <option value="MIXED">Mixed</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Difficulty</label>
+              <select
+                value={createForm.difficulty}
+                onChange={(e) => setCreateForm({ ...createForm, difficulty: e.target.value as any })}
+                className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700"
+              >
+                <option value="EASY">Easy</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HARD">Hard</option>
+                <option value="EXPERT">Expert</option>
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Duration (days)</label>
+              <Input
+                type="number"
+                value={createForm.duration}
+                onChange={(e) => setCreateForm({ ...createForm, duration: parseInt(e.target.value) || 7 })}
+                min="1"
+                max="365"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Max Participants</label>
+              <Input
+                type="number"
+                value={createForm.maxParticipants}
+                onChange={(e) => setCreateForm({ ...createForm, maxParticipants: parseInt(e.target.value) || 10 })}
+                min="1"
+                max="100"
+              />
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isPublic"
+              checked={createForm.isPublic}
+              onChange={(e) => setCreateForm({ ...createForm, isPublic: e.target.checked })}
+              className="rounded"
+            />
+            <label htmlFor="isPublic" className="text-sm">Make challenge public</label>
+          </div>
+          <div className="flex gap-3 pt-4">
+            <Button
+              variant="secondary"
+              onClick={() => setShowCreateModal(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => createChallenge.mutate(createForm)}
+              disabled={createChallenge.status === "loading" || !createForm.title || !createForm.description}
+              className="flex-1"
+            >
+              {createChallenge.status === "loading" ? (
+                <Spinner className="w-4 h-4 mr-2" />
+              ) : (
+                <Plus className="w-4 h-4 mr-2" />
+              )}
+              Create Challenge
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  </div>
+);
 }
