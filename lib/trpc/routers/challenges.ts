@@ -274,7 +274,7 @@ export const challengesRouter = router({
       // Send notification to challenge creator
       if (challenge.creatorId !== ctx.user.id) {
         await NotificationService.createNotification({
-          type: NotificationType.CHALLENGE_JOINED,
+          type: "CHALLENGE_JOINED" as const,
           userId: challenge.creatorId,
           message: `${ctx.user.email} joined your challenge "${challenge.title}"!`,
           relatedEntityId: participation.id,

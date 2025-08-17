@@ -108,7 +108,7 @@ export const friendsRouter = router({
       await ctx.prisma.notification.create({
         data: {
           userId: declined.userId,
-          type: "REQUEST_DECLINED",
+          type: "FRIEND_REQUEST" as const,
           message: `Your friend request was declined.`,
           relatedEntityId: declined.id,
         },

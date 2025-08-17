@@ -6,7 +6,11 @@ export type NotificationType =
   | "REQUEST_ACCEPTED"
   | "NEW_CHEER"
   | "STREAK_MILESTONE"
-  | "WEEKLY_SUMMARY";
+  | "WEEKLY_SUMMARY"
+  | "CHALLENGE_INVITE"
+  | "CHALLENGE_JOINED"
+  | "CHALLENGE_COMPLETED"
+  | "CHALLENGE_MILESTONE";
 
 export interface NotificationData {
   type: NotificationType;
