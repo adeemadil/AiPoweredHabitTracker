@@ -24,6 +24,86 @@ export const habitsRouter = router({
     }));
   }),
 
+  // Get public habits for community view
+  getPublicHabits: protectedProcedure
+    .input(z.object({
+      userId: z.string().optional(),
+      limit: z.number().min(1).max(50).default(20),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Get user's privacy settings
+      const userSettings = await ctx.prisma.userSettings.findUnique({
+        where: { userId: ctx.userId },
+      });
+
+      // Build where clause based on privacy settings
+      let whereClause: any = {};
+      
+      if (input.userId) {
+        // If requesting specific user's habits
+        const targetUserSettings = await ctx.prisma.userSettings.findUnique({
+          where: { userId: input.userId },
+        });
+
+        if (targetUserSettings?.privacyLevel === "private") {
+          // Private user - only show if it's the same user
+          if (input.userId !== ctx.userId) {
+            return [];
+          }
+        } else if (targetUserSettings?.privacyLevel === "friends") {
+          // Friends only - check if they're friends
+          const friendship = await ctx.prisma.friendship.findFirst({
+            where: {
+              OR: [
+                { userId: ctx.userId, friendId: input.userId, status: "accepted" },
+                { userId: input.userId, friendId: ctx.userId, status: "accepted" },
+              ],
+            },
+          });
+          
+          if (!friendship) {
+            return [];
+          }
+        }
+        
+        whereClause.userId = input.userId;
+      } else {
+        // Get all public habits
+        const publicUsers = await ctx.prisma.userSettings.findMany({
+          where: { privacyLevel: "public" },
+          select: { userId: true },
+        });
+        
+        whereClause.userId = {
+          in: publicUsers.map(u => u.userId),
+        };
+      }
+
+      const habits = await ctx.prisma.habit.findMany({
+        where: whereClause,
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
+          completions: {
+            orderBy: { date: "desc" },
+            take: 1,
+          },
+        },
+        take: input.limit,
+        orderBy: { createdAt: "desc" },
+      });
+
+      return habits.map((habit: any) => ({
+        ...habit,
+        streak: calculateStreak(habit.completions),
+        lastCompleted: habit.completions[0]?.date || null,
+      }));
+    }),
+
   create: protectedProcedure
     .input(
       z.object({

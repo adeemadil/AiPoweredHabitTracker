@@ -141,6 +141,16 @@ export interface HabitIconProps {
  * @param size - Optional icon size (default 80)
  */
 export default function HabitIcon({ type, size = 80, className }: HabitIconProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return <div style={{ width: size, height: size }} className={className} />;
+  }
+
   const key = getIconKey(type);
   const Icon = iconMap[key] || iconMap.default;
   return <Icon size={size} className={className} />;

@@ -1,12 +1,12 @@
 # AI-Powered Habit Tracker
 
-A modern, full-stack habit tracking application built with Next.js, tRPC, and OpenAI integration. Track your habits, get AI-powered suggestions, and stay motivated with personalized messages. Now with social features: add friends, send cheers, and encourage each other!
+A modern, full-stack habit tracking application built with Next.js, tRPC, and OpenAI integration. Track your habits, get AI-powered suggestions, and stay motivated with personalized messages. Now with comprehensive social features, settings management, and AI-powered challenges!
 
 ## Features
 
 - 🔐 **Secure authentication** with Clerk
-- 📊 **Track daily habits and streaks**
-- ➕ **Add, view, and complete habits** (daily/weekly)
+- 📊 **Track daily habits and streaks** with visual progress indicators
+- ➕ **Add, view, and complete habits** (daily/weekly/monthly)
 - 👫 **Social features:**
   - Send, accept, and decline friend requests
   - View your friends and pending requests
@@ -16,23 +16,45 @@ A modern, full-stack habit tracking application built with Next.js, tRPC, and Op
   - View all cheers for a habit in a modal
   - Cannot send cheers to yourself (button is disabled and tooltip explains why)
   - Error and success messages are shown as modern toast popups
-- 🤖 **AI-powered habit suggestions** (planned/partial)
-- 💪 **Motivational messages** (planned/partial)
-- 🌙 **Dark mode support**
-- 📱 **Responsive design**
+- ⚙️ **Settings & Preferences:**
+  - Theme switching (Light/Dark/System)
+  - Notification preferences
+  - Privacy settings
+  - Regional settings (timezone, language)
+- 🔔 **Notification System:**
+  - In-app notifications for friend requests, cheers, and milestones
+  - Email and push notification support (placeholder)
+  - Mark as read, delete, and bulk management
+  - Real-time unread count
+- 🏆 **AI-Powered Challenges System:**
+  - Create and join habit challenges
+  - AI-generated challenge suggestions based on user habits
+  - Leaderboards and progress tracking
+  - Challenge rewards and achievements
+  - Social competition features
+- 🤖 **AI Integration:**
+  - OpenAI-powered habit suggestions
+  - AI-generated motivational messages
+  - Smart challenge recommendations
+  - Personalized insights and analytics
+- 🌙 **Dark mode support** with system preference detection
+- 📱 **Responsive design** with mobile-optimized navigation
 - ⚡ **Modern UI/UX:**
   - Toast popups for feedback
   - Disabled buttons and tooltips for restricted actions
   - Clean, mobile-friendly dashboard
+  - Horizontal scrolling for habit cards
+  - Keyboard navigation support
 
 ## Tech Stack
 
-- **Frontend:** Next.js 14 (App Router), TailwindCSS
+- **Frontend:** Next.js 14 (App Router), TailwindCSS, next-themes
 - **Backend:** tRPC, Prisma ORM
-- **Database:** PostgreSQL
+- **Database:** PostgreSQL (Railway)
 - **Authentication:** Clerk
 - **AI Integration:** OpenAI API
 - **Data Fetching:** TanStack Query
+- **State Management:** React hooks with tRPC
 - **Deployment:** Vercel
 
 ## Prerequisites
@@ -41,6 +63,7 @@ A modern, full-stack habit tracking application built with Next.js, tRPC, and Op
 - npm or yarn
 - OpenAI API key
 - Clerk account and API keys
+- PostgreSQL database (Railway recommended)
 
 ## Getting Started
 
@@ -65,9 +88,10 @@ cp .env.example .env.local
 
 Fill in your environment variables in `.env.local`:
 
-- `OPENAI_API_KEY`
-- `CLERK_SECRET_KEY`
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `OPENAI_API_KEY` - Your OpenAI API key for AI features
+- `CLERK_SECRET_KEY` - Clerk secret key for authentication
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - Clerk publishable key
+- `DATABASE_URL` - PostgreSQL connection string
 
 4. Initialize the database:
 
@@ -90,22 +114,29 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 app/
 ├── api/trpc/        # tRPC API routes
 ├── (auth)/          # Authentication pages
-├── (dashboard)/     # Main app pages
+├── (dashboard)/     # Main app pages (habits, friends, settings, challenges)
 ├── components/      # React components
-├── lib/             # Utility functions
+│   ├── ui/         # Reusable UI primitives
+│   ├── habits/     # Habit-related components
+│   └── friends/    # Friend-related components
+├── lib/             # Utility functions and services
+│   ├── trpc/       # tRPC configuration and routers
+│   └── prisma.ts   # Database client
 └── styles/          # Global styles
 ```
 
 ## User Experience & Flow
 
-1. **Sign in** (or sign up) securely with Clerk.
-2. **Add habits** you want to track (with emoji and frequency).
-3. **Mark habits as complete** each day to build your streak.
-4. **Add friends** by email, accept/decline requests, and manage your friend list.
-5. **Send and receive cheers** to/from friends for extra motivation. View all cheers for a habit in a modal.
-6. **Cannot send cheers to yourself** (button is disabled and a tooltip explains why).
-7. **All feedback** (errors, successes) is shown as a modern toast popup, not a blocking alert.
-8. **See all your habits, friends, and cheers** in a clean, modern dashboard.
+1. **Sign in** (or sign up) securely with Clerk
+2. **Add habits** you want to track (with emoji and frequency)
+3. **Mark habits as complete** each day to build your streak
+4. **Add friends** by email, accept/decline requests, and manage your friend list
+5. **Send and receive cheers** to/from friends for extra motivation
+6. **Customize settings** including theme, notifications, and privacy preferences
+7. **Join AI-powered challenges** for extra motivation and social competition
+8. **Receive smart notifications** for important events and milestones
+9. **All feedback** (errors, successes) is shown as modern toast popups
+10. **Navigate seamlessly** with keyboard shortcuts and responsive design
 
 ## Development
 
