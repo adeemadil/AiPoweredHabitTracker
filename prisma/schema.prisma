@@ -21,6 +21,10 @@ model User {
   cheersSent  Cheer[]      @relation("sentCheers")
   cheersReceived Cheer[]   @relation("receivedCheers")
   notifications Notification[] @relation("userNotifications")
+  settings    UserSettings?
+  // Challenge relationships
+  createdChallenges Challenge[] @relation("challengeCreator")
+  challengeParticipants ChallengeParticipant[] @relation("participant")
 }
 
 model Habit {
@@ -85,7 +89,7 @@ model Notification {
   id        String   @id @default(cuid())
   userId    String   // Recipient of the notification
   user      User     @relation("userNotifications", fields: [userId], references: [id], onDelete: Cascade)
-  type      String   // e.g., "FRIEND_REQUEST", "REQUEST_ACCEPTED", "NEW_CHEER"
+  type      NotificationType
   message   String
   isRead    Boolean  @default(false)
   relatedEntityId String? // Optional: ID of the entity related to the notification (e.g., Friendship ID, Cheer ID)
@@ -93,4 +97,105 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+}
+
+enum NotificationType {
+  HABIT_REMINDER
+  FRIEND_REQUEST
+  REQUEST_ACCEPTED
+  NEW_CHEER
+  STREAK_MILESTONE
+  WEEKLY_SUMMARY
+  CHALLENGE_INVITE
+  CHALLENGE_JOINED
+  CHALLENGE_COMPLETED
+  CHALLENGE_MILESTONE
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  theme                 String   @default("light") // "light", "dark", "system"
+  notificationsEnabled  Boolean  @default(true)
+  emailNotifications    Boolean  @default(true)
+  pushNotifications     Boolean  @default(true)
+  privacyLevel          String   @default("friends") // "public", "friends", "private"
+  timezone              String   @default("UTC")
+  language              String   @default("en")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Challenge System Models
+model Challenge {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  creatorId   String
+  creator     User     @relation("challengeCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  type        ChallengeType
+  difficulty  ChallengeDifficulty
+  duration    Int      // Duration in days
+  startDate   DateTime
+  endDate     DateTime
+  maxParticipants Int?  // null = unlimited
+  isActive    Boolean  @default(true)
+  isPublic    Boolean  @default(true)
+  aiGenerated Boolean  @default(false) // Whether this challenge was AI-generated
+  aiPrompt    String?  // The prompt used to generate this challenge
+  participants ChallengeParticipant[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([creatorId])
+  @@index([isActive])
+  @@index([isPublic])
+}
+
+model ChallengeParticipant {
+  id          String   @id @default(cuid())
+  challengeId String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation("participant", fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt    DateTime @default(now())
+  progress    ChallengeProgress[]
+  isActive    Boolean  @default(true)
+  completedAt DateTime?
+
+  @@unique([challengeId, userId])
+  @@index([challengeId])
+  @@index([userId])
+}
+
+model ChallengeProgress {
+  id          String   @id @default(cuid())
+  participantId String
+  participant   ChallengeParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  date         DateTime
+  completed    Boolean  @default(false)
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([participantId, date])
+  @@index([participantId])
+}
+
+enum ChallengeType {
+  STREAK_BASED    // Focus on maintaining streaks
+  FREQUENCY_BASED // Focus on completing habits X times
+  TIME_BASED      // Focus on time spent on habits
+  SOCIAL_BASED    // Focus on social interactions (cheers, etc.)
+  MIXED           // Combination of different types
+}
+
+enum ChallengeDifficulty {
+  EASY
+  MEDIUM
+  HARD
+  EXPERT
 }

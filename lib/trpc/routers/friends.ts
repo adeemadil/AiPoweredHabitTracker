@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { router, protectedProcedure } from "../../trpc-base";
 import { TRPCError } from "@trpc/server";
+import { NotificationService } from "../../notifications";
 
 export const friendsRouter = router({
   // Send a friend request
@@ -38,13 +39,11 @@ export const friendsRouter = router({
         },
       });
       // Create notification for the recipient
-      await ctx.prisma.notification.create({
-        data: {
-          userId: input.friendId,
-          type: "FRIEND_REQUEST",
-          message: `You have a new friend request!`,
-          relatedEntityId: friendship.id,
-        },
+      await NotificationService.createNotification({
+        type: "FRIEND_REQUEST",
+        userId: input.friendId,
+        message: `You have a new friend request!`,
+        relatedEntityId: friendship.id,
       });
       return friendship;
     }),
@@ -73,13 +72,11 @@ export const friendsRouter = router({
         data: { status: "accepted" },
       });
       // Notify the sender that their request was accepted
-      await ctx.prisma.notification.create({
-        data: {
-          userId: updated.userId,
-          type: "REQUEST_ACCEPTED",
-          message: `Your friend request was accepted!`,
-          relatedEntityId: updated.id,
-        },
+      await NotificationService.createNotification({
+        type: "REQUEST_ACCEPTED",
+        userId: updated.userId,
+        message: `Your friend request was accepted!`,
+        relatedEntityId: updated.id,
       });
       return updated;
     }),
@@ -111,7 +108,7 @@ export const friendsRouter = router({
       await ctx.prisma.notification.create({
         data: {
           userId: declined.userId,
-          type: "REQUEST_DECLINED",
+          type: "FRIEND_REQUEST" as const,
           message: `Your friend request was declined.`,
           relatedEntityId: declined.id,
         },

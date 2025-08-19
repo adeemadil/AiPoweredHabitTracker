@@ -28,9 +28,22 @@ const isAuthed = t.middleware(async ({ next, ctx }) => {
     });
   }
 
+  // Get user from database
+  const user = await ctx.prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "User not found",
+    });
+  }
+
   return next({
     ctx: {
       userId,
+      user,
       prisma,
     },
   });

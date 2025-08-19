@@ -16,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={plusJakarta.className}>
         {/* Providers wraps Clerk, tRPC, and QueryClient providers */}
         <Providers>

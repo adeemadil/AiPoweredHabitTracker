@@ -1,12 +1,12 @@
 "use client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { trpc } from "@/lib/trpc/init";
+import { httpBatchLink } from "@trpc/client";
 import { useState } from "react";
+import { trpc } from "@/lib/trpc/init";
+import { ThemeProvider } from "next-themes";
 import { ClerkProvider } from "@clerk/nextjs";
 import superjson from "superjson";
-import { httpBatchLink } from "@trpc/react-query";
 
-// Provider wraps the app in all necessary context providers
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
   const [trpcClient] = useState(() =>
@@ -17,13 +17,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
           url: "/api/trpc",
         }),
       ],
-    }),
+    })
   );
+
   return (
     <ClerkProvider>
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+            {children}
+          </ThemeProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </ClerkProvider>
