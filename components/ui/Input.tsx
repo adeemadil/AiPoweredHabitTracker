@@ -1,25 +1,21 @@
-"use client";
-import React from "react";
+import * as React from "react";
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  variant?: "default" | "error" | "success";
-}
+import { cn } from "./utils";
 
-const base =
-  "w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white";
-const variants = {
-  default: "border-gray-300",
-  error: "border-red-500 focus:ring-red-500",
-  success: "border-green-500 focus:ring-green-500",
-};
-
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ variant = "default", className = "", ...props }, ref) => (
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
     <input
-      ref={ref}
-      className={`${base} ${variants[variant]} ${className}`}
+      type={type}
+      data-slot="input"
+      className={cn(
+        "file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input flex h-9 w-full min-w-0 rounded-md border px-3 py-1 text-base bg-input-background transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
+        "aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+        className,
+      )}
       {...props}
     />
-  ),
-);
-Input.displayName = "Input";
+  );
+}
+
+export { Input };

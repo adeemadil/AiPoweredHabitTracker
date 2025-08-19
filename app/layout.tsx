@@ -1,31 +1,28 @@
-import { Plus_Jakarta_Sans } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
-import Topbar from "@/components/Topbar";
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
 
-const plusJakarta = Plus_Jakarta_Sans({ subsets: ["latin"], weight: ["400","500","700","800"] });
+const inter = Inter({ subsets: ['latin'] })
 
-export const metadata = {
-  title: "AI-Powered Habit Tracker",
-  description: "Track your habits with AI-powered suggestions and motivation",
-};
+export const metadata: Metadata = {
+  title: 'Habitual - Smart Habit Tracker',
+  description: 'Build lasting habits with AI insights and social motivation',
+  keywords: 'habit tracker, productivity, AI insights, habit building',
+  authors: [{ name: 'Habitual Team' }],
+  viewport: 'width=device-width, initial-scale=1',
+  themeColor: '#6EC1E4',
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={plusJakarta.className}>
-        {/* Providers wraps Clerk, tRPC, and QueryClient providers */}
-        <Providers>
-          <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-            <Topbar />
-            <main className="flex flex-col items-center px-4 py-8 w-full max-w-6xl mx-auto">{children}</main>
-          </div>
-        </Providers>
+      <body className={inter.className}>
+        {children}
       </body>
     </html>
-  );
+  )
 }
