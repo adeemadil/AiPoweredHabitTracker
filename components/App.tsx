@@ -1,26 +1,28 @@
+'use client'
+
 import { useState, useEffect } from 'react';
-import { Navigation } from './components/Navigation';
-import { Sidebar } from './components/Sidebar';
-import { HabitCard } from './components/HabitCard';
-import { AddHabitModal } from './components/AddHabitModal';
-import { AIInsightsWidget } from './components/AIInsightsWidget';
-import { NotificationPreferences } from './components/NotificationPreferences';
-import { SocialSharing } from './components/SocialSharing';
-import { DataManagement } from './components/DataManagement';
-import { Onboarding } from './components/Onboarding';
-import { AuthScreen } from './components/AuthScreen';
-import { SyncStatus } from './components/SyncStatus';
-import { Button } from './components/ui/button';
-import { Alert, AlertDescription } from './components/ui/alert';
-import { Card, CardContent } from './components/ui/card';
-import { Label } from './components/ui/label';
-import { Switch } from './components/ui/switch';
-import { Badge } from './components/ui/badge';
-import { Input } from './components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Navigation } from './Navigation';
+import { Sidebar } from './Sidebar';
+import { HabitCard } from './HabitCard';
+import { AddHabitModal } from './AddHabitModal';
+import { AIInsightsWidget } from './AIInsightsWidget';
+import { NotificationPreferences } from './NotificationPreferences';
+import { SocialSharing } from './SocialSharing';
+import { DataManagement } from './DataManagement';
+import { Onboarding } from './Onboarding';
+import { AuthScreen } from './AuthScreen';
+import { SyncStatus } from './SyncStatus';
+import { Button } from './ui/button';
+import { Alert, AlertDescription } from './ui/alert';
+import { Card, CardContent } from './ui/card';
+import { Label } from './ui/label';
+import { Switch } from './ui/switch';
+import { Badge } from './ui/badge';
+import { Input } from './ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Plus, LogOut, Loader2, Bell, Share2, Database, Download, Upload, Search, Filter, Users, UserPlus, Heart } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { habitService, type Habit } from './services/habitService';
+import { motion, AnimatePresence } from 'framer-motion';
+import { habitService, type Habit } from '../services/habitService';
 
 export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
