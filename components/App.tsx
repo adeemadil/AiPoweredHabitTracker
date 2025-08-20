@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react';
+import { useAuth, useUser } from '@clerk/nextjs';
 import { Navigation } from './Navigation';
 import { Sidebar } from './Sidebar';
 import { HabitCard } from './HabitCard';
@@ -25,13 +26,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { habitService, type Habit } from '../services/habitService';
 
 export default function App() {
+  const { isSignedIn, isLoaded: authLoaded } = useAuth();
+  const { user } = useUser();
+  
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [currentView, setCurrentView] = useState('dashboard');
   const [activeFilter, setActiveFilter] = useState('all');
   const [showAddModal, setShowAddModal] = useState(false);
   const [habits, setHabits] = useState<Habit[]>([]);
-  const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [analytics, setAnalytics] = useState<any>(null);
@@ -40,19 +43,21 @@ export default function App() {
 
   // Check for existing session on app load
   useEffect(() => {
-    checkSession();
-  }, []);
+    if (authLoaded) {
+      checkSession();
+    }
+  }, [authLoaded]);
 
-  // Load habits when session changes
+  // Load habits when authentication state changes
   useEffect(() => {
-    if (session) {
+    if (isSignedIn && user) {
       loadHabits();
       loadAnalytics();
     } else {
       setHabits([]);
       setAnalytics(null);
     }
-  }, [session]);
+  }, [isSignedIn, user]);
 
   // Dark mode handling
   useEffect(() => {
@@ -77,9 +82,7 @@ export default function App() {
   // Check for existing session
   const checkSession = async () => {
     try {
-      const currentSession = await habitService.getCurrentSession();
-      if (currentSession) {
-        setSession(currentSession);
+      if (isSignedIn && user) {
         setShowOnboarding(false);
       } else {
         // Check if user has seen onboarding before
@@ -116,20 +119,16 @@ export default function App() {
   };
 
   // Handle authentication success
-  const handleAuthSuccess = (newSession: any) => {
-    setSession(newSession);
+  const handleAuthSuccess = () => {
     setError('');
   };
 
   // Handle sign out
   const handleSignOut = async () => {
     try {
-      await habitService.signOut();
-      setSession(null);
+      // Clerk handles sign out via UI
       setHabits([]);
       setAnalytics(null);
-      // Clear any stored tokens
-      localStorage.removeItem('supabase_session_token');
       // Don't show onboarding again if user has already seen it
       const hasSeenOnboarding = localStorage.getItem('habitual-onboarding-completed');
       setShowOnboarding(!hasSeenOnboarding);
@@ -268,8 +267,8 @@ export default function App() {
     return <Onboarding onComplete={handleOnboardingComplete} />;
   }
 
-  // Show auth screen if no session
-  if (!session) {
+  // Show auth screen if not signed in
+  if (!isSignedIn) {
     return (
       <AuthScreen
         onSuccess={handleAuthSuccess}
@@ -535,12 +534,12 @@ export default function App() {
               <div className="space-y-4">
                 <div>
                   <Label>Email</Label>
-                  <p className="text-muted-foreground">{session?.user?.email}</p>
+                  <p className="text-muted-foreground">{user?.emailAddresses?.[0]?.emailAddress}</p>
                 </div>
                 <div>
                   <Label>Name</Label>
                   <p className="text-muted-foreground">
-                    {session?.user?.user_metadata?.name || 'Not set'}
+                    {user?.fullName || 'Not set'}
                   </p>
                 </div>
               </div>
@@ -564,20 +563,8 @@ export default function App() {
               </div>
             </Card>
 
-            {/* Data Management Section */}
-            <DataManagement habits={habits} onHabitsUpdated={handleHabitsUpdated} />
-
-            <Card className="p-6 border-destructive">
-              <h3 className="mb-4 text-destructive">Danger Zone</h3>
-              <Button
-                variant="destructive"
-                onClick={handleSignOut}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
-            </Card>
+                         {/* Data Management Section */}
+             <DataManagement habits={habits} onHabitsUpdated={handleHabitsUpdated} />
           </div>
         );
 
@@ -594,7 +581,7 @@ export default function App() {
         currentView={currentView}
         onViewChange={setCurrentView}
         onSignOut={handleSignOut}
-        user={session?.user}
+                      user={user}
         notificationCount={getNotificationCount()}
       />
 

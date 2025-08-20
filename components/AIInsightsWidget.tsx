@@ -64,7 +64,8 @@ export function AIInsightsWidget({ analytics, className = '' }: AIInsightsWidget
     ]
   };
 
-  const data = analytics || mockAnalytics;
+  // Merge provided analytics over sensible defaults to avoid undefined fields
+  const data = { ...mockAnalytics, ...(analytics || {}) };
 
   const getInsightIcon = (type: string) => {
     switch (type) {
@@ -141,7 +142,7 @@ export function AIInsightsWidget({ analytics, className = '' }: AIInsightsWidget
           </div>
           
           <div className="flex justify-between gap-1">
-            {data.weeklyData.map((day: any, index: number) => {
+            {(data.weeklyData || []).map((day: any, index: number) => {
               const completionRate = (day.completed / day.total) * 100;
               let bgColor = 'bg-gray-100';
               

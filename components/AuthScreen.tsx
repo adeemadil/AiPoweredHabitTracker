@@ -20,13 +20,12 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../utils/supabase/client';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { useSignIn, useSignUp, useClerk } from '@clerk/nextjs';
 
 type AuthView = 'login' | 'signup' | 'forgot-password' | 'two-factor';
 
 interface AuthScreenProps {
-  onSuccess: (session: any) => void;
+  onSuccess: () => void;
   onBack?: () => void;
 }
 
@@ -54,7 +53,10 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     email: ''
   });
 
-  // Using shared Supabase client instance
+  // Clerk hooks
+  const { signIn, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const { client } = useClerk();
 
   // Password strength calculation
   const calculatePasswordStrength = (password: string) => {
@@ -80,27 +82,26 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signInLoaded) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginForm.email,
+      const result = await signIn.create({
+        identifier: loginForm.email,
         password: loginForm.password,
       });
 
-      if (error) {
-        setError(`Login failed: ${error.message}`);
-        return;
-      }
-
-      if (data.session) {
-        onSuccess(data.session);
+      if (result.status === 'complete') {
+        onSuccess();
         setLoginForm({ email: '', password: '' });
+      } else if (result.status === 'needs_two_factor') {
+        setCurrentView('two-factor');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('An unexpected error occurred during login');
+      setError(err.errors?.[0]?.message || 'An unexpected error occurred during login');
     } finally {
       setIsLoading(false);
     }
@@ -108,6 +109,8 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signUpLoaded) return;
+    
     setIsLoading(true);
     setError('');
 
@@ -124,44 +127,22 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     }
 
     try {
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${publicAnonKey}`
-        },
-        body: JSON.stringify({
-          email: signupForm.email,
-          password: signupForm.password,
-          name: signupForm.name
-        })
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        setError(result.error || 'Signup failed');
-        return;
-      }
-
-      // After successful signup, automatically log in
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: signupForm.email,
+      const result = await signUp.create({
+        emailAddress: signupForm.email,
         password: signupForm.password,
+        firstName: signupForm.name.split(' ')[0],
+        lastName: signupForm.name.split(' ').slice(1).join(' ') || '',
       });
 
-      if (error) {
-        setError(`Login after signup failed: ${error.message}`);
-        return;
-      }
-
-      if (data.session) {
-        onSuccess(data.session);
+      if (result.status === 'complete') {
+        onSuccess();
         setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
+      } else if (result.status === 'needs_email_verification') {
+        setSuccessMessage('Please check your email to verify your account!');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Signup error:', err);
-      setError('An unexpected error occurred during signup');
+      setError(err.errors?.[0]?.message || 'An unexpected error occurred during signup');
     } finally {
       setIsLoading(false);
     }
@@ -169,58 +150,50 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signInLoaded) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        forgotPasswordForm.email,
-        {
-          redirectTo: `${window.location.origin}/reset-password`,
-        }
-      );
-
-      if (error) {
-        setError(`Reset failed: ${error.message}`);
-        return;
-      }
+      await signIn.create({
+        strategy: 'reset_password_email_code',
+        identifier: forgotPasswordForm.email,
+      });
 
       setSuccessMessage('Password reset email sent! Check your inbox.');
       setForgotPasswordForm({ email: '' });
-    } catch (err) {
+    } catch (err: any) {
       console.error('Forgot password error:', err);
-      setError('An unexpected error occurred');
+      setError(err.errors?.[0]?.message || 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'oauth_google' | 'oauth_github') => {
+    if (!signInLoaded) return;
+    
     setIsLoading(true);
     setError('');
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin,
-        }
+      await signIn.authenticateWithRedirect({
+        strategy: provider,
+        redirectUrl: '/',
+        redirectUrlComplete: '/',
       });
-
-      if (error) {
-        setError(`${provider} login failed: ${error.message}`);
-        return;
-      }
-    } catch (err) {
+    } catch (err: any) {
       console.error(`${provider} login error:`, err);
-      setError(`An error occurred during ${provider} login`);
-    } finally {
+      setError(err.errors?.[0]?.message || `An error occurred during ${provider} login`);
       setIsLoading(false);
     }
   };
 
   const handleOTPVerification = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!signInLoaded) return;
+    
     setIsLoading(true);
     setError('');
 
@@ -231,24 +204,18 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     }
 
     try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email: loginForm.email,
-        token: otpCode,
-        type: 'email'
+      const result = await signIn.attemptFirstFactor({
+        strategy: 'totp',
+        code: otpCode,
       });
 
-      if (error) {
-        setError(`Verification failed: ${error.message}`);
-        return;
-      }
-
-      if (data.session) {
-        onSuccess(data.session);
+      if (result.status === 'complete') {
+        onSuccess();
         setOtpCode('');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('OTP verification error:', err);
-      setError('An unexpected error occurred during verification');
+      setError(err.errors?.[0]?.message || 'An unexpected error occurred during verification');
     } finally {
       setIsLoading(false);
     }
@@ -424,7 +391,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                     <Button
                       type="button"
                       variant={socialButtonVariant}
-                      onClick={() => handleSocialLogin('google')}
+                      onClick={() => handleSocialLogin('oauth_google')}
                       disabled={isLoading}
                       className="h-12"
                     >
@@ -441,7 +408,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                     <Button
                       type="button"
                       variant={socialButtonVariant}
-                      onClick={() => handleSocialLogin('github')}
+                      onClick={() => handleSocialLogin('oauth_github')}
                       disabled={isLoading}
                       className="h-12"
                     >

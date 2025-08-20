@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { UserButton, useUser } from '@clerk/nextjs';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
@@ -48,6 +49,7 @@ export function Navigation({
   notificationCount = 0
 }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user: clerkUser } = useUser();
 
   const navigationItems = [
     {
@@ -92,15 +94,18 @@ export function Navigation({
     setIsMobileMenuOpen(false);
   };
 
-  const getUserInitials = (user: any) => {
-    if (!user) return 'U';
-    const name = user.user_metadata?.name || user.email || 'User';
+  const getUserInitials = (legacyUser: any) => {
+    const name = clerkUser?.fullName || clerkUser?.primaryEmailAddress?.emailAddress || legacyUser?.email || 'User';
     return name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
-  const getUserDisplayName = (user: any) => {
-    if (!user) return 'User';
-    return user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+  const getUserDisplayName = (legacyUser: any) => {
+    return (
+      clerkUser?.fullName ||
+      clerkUser?.primaryEmailAddress?.emailAddress ||
+      legacyUser?.email?.split('@')[0] ||
+      'User'
+    );
   };
 
   return (
@@ -170,51 +175,8 @@ export function Navigation({
                 <Moon className="h-4 w-4 text-muted-foreground" />
               </div>
 
-              {/* User Menu */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="relative">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-medium text-sm">
-                      {getUserInitials(user)}
-                    </div>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{getUserDisplayName(user)}</p>
-                      <p className="text-xs text-muted-foreground">{user?.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  {/* Mobile-only sync status */}
-                  <div className="sm:hidden px-2 py-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Sync Status</span>
-                      <SyncStatus showText />
-                    </div>
-                  </div>
-                  
-                  {/* Mobile-only theme toggle */}
-                  <div className="sm:hidden px-2 py-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Dark Mode</span>
-                      <Switch
-                        checked={isDarkMode}
-                        onCheckedChange={onToggleDarkMode}
-                        className="data-[state=checked]:bg-primary"
-                      />
-                    </div>
-                  </div>
-                  
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={onSignOut} className="text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {/* User Menu (Clerk) */}
+              <UserButton afterSignOutUrl="/" />
 
               {/* Mobile Menu Toggle */}
               <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>

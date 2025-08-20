@@ -1,5 +1,4 @@
-import { supabase } from '../utils/supabase/client';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { auth } from '@clerk/nextjs';
 
 export interface Habit {
   isFavorite: unknown;
@@ -20,38 +19,24 @@ export interface Habit {
 }
 
 class HabitService {
-  // Using shared Supabase client instance
-
-  private getAuthHeaders(accessToken?: string) {
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${accessToken || publicAnonKey}`
-    };
+  private async fetchJSON(input: RequestInfo, init?: RequestInit) {
+    const res = await fetch(input, init);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error || 'Request failed');
+    return data;
   }
 
   async getCurrentSession() {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession();
-      if (error) {
-        console.error('Get session error:', error);
-        return null;
-      }
-      return session;
-    } catch (error) {
-      console.error('Session error:', error);
+      const res = await this.fetchJSON('/api/session');
+      return res.session;
+    } catch {
       return null;
     }
   }
 
   async signOut() {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-      }
-    } catch (error) {
-      console.error('Sign out error:', error);
-    }
+    // Clerk handles sign out via UI; no-op here
   }
 
   async getHabits(): Promise<Habit[]> {
@@ -61,17 +46,7 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/habits`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(session.access_token)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to fetch habits');
-      }
-
+      const result = await this.fetchJSON('/api/habits');
       return result.habits || [];
     } catch (error) {
       console.error('Get habits error:', error);
@@ -86,18 +61,7 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/habits`, {
-        method: 'POST',
-        headers: this.getAuthHeaders(session.access_token),
-        body: JSON.stringify(habitData)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create habit');
-      }
-
+      const result = await this.fetchJSON('/api/habits', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(habitData) });
       return result.habit;
     } catch (error) {
       console.error('Create habit error:', error);
@@ -112,17 +76,7 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/habits/${habitId}/complete`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(session.access_token)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to complete habit');
-      }
-
+      const result = await this.fetchJSON(`/api/habits/${habitId}/complete`, { method: 'PUT' });
       return result.habit;
     } catch (error) {
       console.error('Complete habit error:', error);
@@ -137,17 +91,7 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/habits/${habitId}/skip`, {
-        method: 'PUT',
-        headers: this.getAuthHeaders(session.access_token)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to skip habit');
-      }
-
+      const result = await this.fetchJSON(`/api/habits/${habitId}/skip`, { method: 'PUT' });
       return result.habit;
     } catch (error) {
       console.error('Skip habit error:', error);
@@ -162,15 +106,7 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/habits/${habitId}`, {
-        method: 'DELETE',
-        headers: this.getAuthHeaders(session.access_token)
-      });
-
-      if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.error || 'Failed to delete habit');
-      }
+      await this.fetchJSON(`/api/habits/${habitId}`, { method: 'DELETE' });
     } catch (error) {
       console.error('Delete habit error:', error);
       throw error;
@@ -184,18 +120,9 @@ class HabitService {
         throw new Error('Not authenticated');
       }
 
-      const response = await fetch(`https://${projectId}.supabase.co/functions/v1/make-server-b25eddda/analytics`, {
-        method: 'GET',
-        headers: this.getAuthHeaders(session.access_token)
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to fetch analytics');
-      }
-
-      return result;
+      // Placeholder: compute simple analytics client-side or add /api/analytics
+      const habits = await this.getHabits();
+      return { total: habits.length };
     } catch (error) {
       console.error('Analytics error:', error);
       throw error;
