@@ -155,7 +155,7 @@ To create the most intuitive and motivating habit tracking experience that helps
 - **React 18**: Latest React with concurrent features
 - **TypeScript**: Full type safety and developer experience
 - **Tailwind CSS v4**: Utility-first CSS with custom design tokens
-- **Motion React**: Smooth animations and transitions
+- **Framer Motion**: Smooth animations and transitions
 - **Lucide React**: Consistent icon library
 
 #### Component Library

@@ -26,7 +26,7 @@ import {
   Trophy,
   MessageCircle
 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 
 interface NavigationProps {
   isDarkMode: boolean;

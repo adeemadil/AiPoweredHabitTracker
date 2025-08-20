@@ -234,6 +234,12 @@ export default function App() {
     setShowOnboarding(true);
   };
 
+  // Handle habits updated from data management
+  const handleHabitsUpdated = () => {
+    loadHabits();
+    loadAnalytics();
+  };
+
   // Calculate notification count (mock for now)
   const getNotificationCount = () => {
     const notificationSettings = JSON.parse(localStorage.getItem('notification-settings') || '{}');
@@ -559,7 +565,7 @@ export default function App() {
             </Card>
 
             {/* Data Management Section */}
-            <DataManagement />
+            <DataManagement habits={habits} onHabitsUpdated={handleHabitsUpdated} />
 
             <Card className="p-6 border-destructive">
               <h3 className="mb-4 text-destructive">Danger Zone</h3>

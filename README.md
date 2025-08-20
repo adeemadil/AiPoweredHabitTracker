@@ -146,6 +146,20 @@ app/
 - `npm run lint` - Run ESLint
 - `npm run format` - Format code with Prettier
 
+## Troubleshooting
+
+- SSR error: `ReferenceError: window is not defined`
+  - Ensure Supabase client is SSR-safe. Use `typeof window !== 'undefined'` checks and pass `storage: window.localStorage` only in the browser.
+
+- Next.js warnings: Unsupported metadata `viewport`/`themeColor`
+  - Move these to a dedicated `export const viewport = { width: 'device-width', initialScale: 1, themeColor: '#...' }` in `app/layout.tsx`.
+
+- Module not found for `class-variance-authority@0.7.1`
+  - Import without version suffix: `import { cva } from 'class-variance-authority'`.
+
+- Versioned imports in shadcn/ui
+  - Replace imports like `@radix-ui/react-accordion@1.2.3` with `@radix-ui/react-accordion`.
+
 ## Contributing
 
 1. Fork the repository

@@ -96,12 +96,21 @@
 ### Phase 1: Database Foundation (Week 1-2)
 ```typescript
 // Keep your existing tRPC setup but add Supabase database
-// /utils/supabase/client.tsx - Add this
+// /utils/supabase/client.tsx - SSR-safe Supabase client
 import { createClient } from '@supabase/supabase-js'
 
+const isBrowser = typeof window !== 'undefined'
 export const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: true,
+      storage: isBrowser ? window.localStorage : undefined,
+      autoRefreshToken: true,
+      detectSessionInUrl: isBrowser,
+    },
+  },
 )
 
 // Update your tRPC procedures to use Supabase

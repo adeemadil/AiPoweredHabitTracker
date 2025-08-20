@@ -7,7 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
 import { Sparkles, Clock, Calendar, Lightbulb, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AddHabitModalProps {
   isOpen: boolean;

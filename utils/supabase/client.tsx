@@ -1,20 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
-import { projectId, publicAnonKey } from './info';
 
-const supabaseUrl = `https://${projectId}.supabase.co`;
+// Read from environment (set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
+const publicAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
 
 // Create a singleton Supabase client instance
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
 export const supabase = (() => {
   if (!supabaseInstance) {
+    // Use noop storage on the server to avoid window access during SSR
+    const isBrowser = typeof window !== 'undefined';
+    const storage: Storage | undefined = isBrowser ? window.localStorage : undefined;
+
     supabaseInstance = createClient(supabaseUrl, publicAnonKey, {
       auth: {
         persistSession: true,
-        storage: window?.localStorage,
+        storage,
         autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
+        detectSessionInUrl: isBrowser,
+      },
     });
   }
   return supabaseInstance;

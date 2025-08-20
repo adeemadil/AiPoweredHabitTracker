@@ -127,7 +127,7 @@ Unlike traditional habit trackers that feel clinical or overwhelming, Habitual f
 ```
 React 18 + TypeScript
 ├── Tailwind CSS v4 (Custom Design System)
-├── Motion React (Smooth Animations)
+├── Framer Motion (Smooth Animations)
 ├── shadcn/ui (Accessible Component Library)
 ├── Lucide React (Consistent Icons)
 └── Responsive Design (Mobile-First)

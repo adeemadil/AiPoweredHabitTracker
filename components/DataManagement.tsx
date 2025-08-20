@@ -15,7 +15,7 @@ import {
   Calendar,
   Activity
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { habitService, type Habit } from '../services/habitService';
 
 interface DataManagementProps {

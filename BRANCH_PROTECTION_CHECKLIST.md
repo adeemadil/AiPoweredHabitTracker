@@ -48,7 +48,7 @@
 - [ ] ✅ Include administrators
 
 ## Status Checks to Enable
-- [ ] TypeScript compilation
+- [ ] TypeScript compilation (`npx tsc --noEmit --skipLibCheck`)
 - [ ] ESLint checks
 - [ ] Unit tests
 - [ ] Build verification

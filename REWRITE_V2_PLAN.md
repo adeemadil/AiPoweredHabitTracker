@@ -17,6 +17,9 @@ Complete overhaul of the AiPoweredHabitTracker codebase to modernize architectur
 ### Phase 1: Foundation & Architecture
 - [ ] **Project Structure Overhaul**
   - [ ] Modern Next.js 14+ App Router setup
+  - [ ] Move metadata `viewport` and `themeColor` to `export const viewport` (Next.js 14)
+  - [ ] Remove version-suffixed imports (e.g., `@radix-ui/react-*@x.y.z` → `@radix-ui/react-*`)
+  - [ ] Standardize `class-variance-authority` import path (no version suffix)
   - [ ] TypeScript strict mode configuration
   - [ ] Component library standardization (shadcn/ui)
   - [ ] State management strategy (Zustand/Redux Toolkit)
@@ -27,6 +30,7 @@ Complete overhaul of the AiPoweredHabitTracker codebase to modernize architectur
   - [ ] Migration strategy for existing data
   - [ ] API endpoint consolidation
   - [ ] Authentication system upgrade (Clerk v5+)
+  - [ ] SSR-safe Supabase client (no `window` access during SSR)
 
 ### Phase 2: Core Features
 - [ ] **Habit Management**

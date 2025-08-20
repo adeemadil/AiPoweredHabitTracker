@@ -6,7 +6,7 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Checkbox } from './ui/checkbox';
 import { ArrowRight, ArrowLeft, Sparkles, Users, Target, Heart, Brain, Dumbbell, BookOpen, Coffee } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface OnboardingProps {
   onComplete: () => void;

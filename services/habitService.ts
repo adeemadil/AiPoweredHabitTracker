@@ -2,6 +2,8 @@ import { supabase } from '../utils/supabase/client';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 
 export interface Habit {
+  isFavorite: unknown;
+  completionRate: number;
   id: string;
   name: string;
   emoji: string;

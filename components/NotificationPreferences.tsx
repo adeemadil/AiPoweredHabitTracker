@@ -7,7 +7,7 @@ import { Badge } from './ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Alert, AlertDescription } from './ui/alert';
 import { Bell, Clock, Smartphone, CheckCircle2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion';
 import { habitService, type Habit } from '../services/habitService';
 
 interface NotificationPreferencesProps {
@@ -220,7 +220,7 @@ export function NotificationPreferences({ habits }: NotificationPreferencesProps
                       {/* Toggle Switch */}
                       <Switch
                         checked={habitSettings?.enabled || false}
-                        onCheckedChange={(enabled) => 
+                        onCheckedChange={(enabled: boolean) => 
                           updateHabitSetting(habit.id, 'enabled', enabled)
                         }
                       />
@@ -243,7 +243,7 @@ export function NotificationPreferences({ habits }: NotificationPreferencesProps
                             </Label>
                             <Select
                               value={habitSettings.timing}
-                              onValueChange={(value) => 
+                              onValueChange={(value: string) => 
                                 updateHabitSetting(habit.id, 'timing', value as 'morning' | 'afternoon' | 'evening')
                               }
                             >
