@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Plus, LogOut, Loader2, Bell, Share2, Database, Download, Upload, Search, Filter, Users, UserPlus, Heart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { habitService, type Habit } from '../services/habitService';
+import { sampleQuantifiableHabits } from '../utils/sampleHabits';
 
 export default function App() {
   const { isSignedIn, isLoaded: authLoaded } = useAuth();
@@ -101,10 +102,17 @@ export default function App() {
   const loadHabits = async () => {
     try {
       const userHabits = await habitService.getHabits();
-      setHabits(userHabits);
+      if (userHabits.length === 0) {
+        // Show sample habits if user has no habits yet
+        setHabits(sampleQuantifiableHabits as Habit[]);
+      } else {
+        setHabits(userHabits);
+      }
     } catch (error) {
       console.error('Load habits error:', error);
       setError('Failed to load habits. Please try refreshing the page.');
+      // Fallback to sample habits on error
+      setHabits(sampleQuantifiableHabits as Habit[]);
     }
   };
 
@@ -208,6 +216,36 @@ export default function App() {
     } catch (error) {
       console.error('Skip habit error:', error);
       setError('Failed to skip habit. Please try again.');
+    }
+  };
+
+  // Handle iterative completion - update quantity
+  const handleUpdateHabitQuantity = async (habitId: string, currentQuantity: number) => {
+    try {
+      const updatedHabit = await habitService.updateHabitQuantity(habitId, currentQuantity);
+      setHabits(prev => prev.map(habit => 
+        habit.id === habitId ? updatedHabit : habit
+      ));
+      // Reload analytics to reflect new completion
+      loadAnalytics();
+    } catch (error) {
+      console.error('Update habit quantity error:', error);
+      setError('Failed to update habit quantity. Please try again.');
+    }
+  };
+
+  // Handle iterative completion - increment quantity
+  const handleIncrementHabitQuantity = async (habitId: string, increment: number = 1) => {
+    try {
+      const updatedHabit = await habitService.incrementHabitQuantity(habitId, increment);
+      setHabits(prev => prev.map(habit => 
+        habit.id === habitId ? updatedHabit : habit
+      ));
+      // Reload analytics to reflect new completion
+      loadAnalytics();
+    } catch (error) {
+      console.error('Increment habit quantity error:', error);
+      setError('Failed to increment habit quantity. Please try again.');
     }
   };
 
@@ -477,6 +515,8 @@ export default function App() {
                           habit={habit}
                           onComplete={handleCompleteHabit}
                           onSkip={handleSkipHabit}
+                          onUpdateQuantity={handleUpdateHabitQuantity}
+                          onIncrementQuantity={handleIncrementHabitQuantity}
                         />
                       </motion.div>
                     ))}

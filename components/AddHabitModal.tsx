@@ -12,7 +12,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface AddHabitModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (habit: { name: string; frequency: string; emoji: string; notes?: string }) => void;
+  onAdd: (habit: { 
+    name: string; 
+    frequency: string; 
+    emoji: string; 
+    notes?: string;
+    isQuantifiable?: boolean;
+    targetQuantity?: number;
+    unit?: string;
+  }) => void;
 }
 
 interface AISuggestion {
@@ -30,6 +38,11 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
   const [aiSuggestion, setAiSuggestion] = useState<AISuggestion | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  
+  // New fields for quantifiable habits
+  const [isQuantifiable, setIsQuantifiable] = useState(false);
+  const [targetQuantity, setTargetQuantity] = useState(1);
+  const [unit, setUnit] = useState('');
 
   // Common habit emojis
   const popularEmojis = [
@@ -129,7 +142,10 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
       name: habitName.trim(),
       frequency,
       emoji: selectedEmoji,
-      notes: notes.trim() || undefined
+      notes: notes.trim() || undefined,
+      isQuantifiable,
+      targetQuantity,
+      unit
     });
 
     // Reset form
@@ -138,6 +154,9 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
     setSelectedEmoji('✨');
     setNotes('');
     setAiSuggestion(null);
+    setIsQuantifiable(false);
+    setTargetQuantity(1);
+    setUnit('');
     onClose();
   };
 
@@ -147,6 +166,9 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
     setSelectedEmoji('✨');
     setNotes('');
     setAiSuggestion(null);
+    setIsQuantifiable(false);
+    setTargetQuantity(1);
+    setUnit('');
     setShowEmojiPicker(false);
     onClose();
   };
@@ -315,6 +337,60 @@ export function AddHabitModal({ isOpen, onClose, onAdd }: AddHabitModalProps) {
               <p className="text-sm text-muted-foreground">
                 💡 AI suggests <strong>{aiSuggestion.frequency}</strong> frequency for best results
               </p>
+            )}
+          </div>
+
+          {/* Quantifiable Habit Options */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isQuantifiable"
+                checked={isQuantifiable}
+                onChange={(e) => setIsQuantifiable(e.target.checked)}
+                className="rounded border-border"
+              />
+              <Label htmlFor="isQuantifiable" className="text-sm font-medium">
+                This is a quantifiable habit (e.g., "Drink 8 glasses of water")
+              </Label>
+            </div>
+            
+            {isQuantifiable && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3 p-4 border rounded-lg bg-accent/50"
+              >
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="targetQuantity" className="text-sm">Target Quantity</Label>
+                    <Input
+                      id="targetQuantity"
+                      type="number"
+                      min="1"
+                      value={targetQuantity}
+                      onChange={(e) => setTargetQuantity(parseInt(e.target.value) || 1)}
+                      className="text-sm"
+                      placeholder="8"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="unit" className="text-sm">Unit</Label>
+                    <Input
+                      id="unit"
+                      type="text"
+                      value={unit}
+                      onChange={(e) => setUnit(e.target.value)}
+                      className="text-sm"
+                      placeholder="glasses, pages, minutes..."
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  💡 Examples: "8 glasses", "30 pages", "50 push-ups", "10,000 steps"
+                </p>
+              </motion.div>
             )}
           </div>
 

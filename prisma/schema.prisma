@@ -39,6 +39,12 @@ model Habit {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   backgroundSvgUrl String? // URL for SVG background image
+  
+  // New fields for iterative completion
+  targetQuantity Int?     // Target number for quantifiable habits (e.g., 8 glasses of water)
+  currentQuantity Int     @default(0) // Current progress toward target
+  unit          String?   // Unit of measurement (e.g., "glasses", "pages", "minutes")
+  isQuantifiable Boolean  @default(false) // Whether this habit supports incremental progress
 
   @@index([userId])
 }

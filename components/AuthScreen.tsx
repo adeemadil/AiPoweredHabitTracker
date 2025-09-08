@@ -22,7 +22,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSignIn, useSignUp, useClerk } from '@clerk/nextjs';
 
-type AuthView = 'login' | 'signup' | 'forgot-password' | 'two-factor';
+type AuthView = 'login' | 'signup' | 'forgot-password' | 'two-factor' | 'verify-email';
 
 interface AuthScreenProps {
   onSuccess: () => void;
@@ -36,6 +36,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [otpCode, setOtpCode] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
   
   const [loginForm, setLoginForm] = useState({
     email: '',
@@ -96,7 +97,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
       if (result.status === 'complete') {
         onSuccess();
         setLoginForm({ email: '', password: '' });
-      } else if (result.status === 'needs_two_factor') {
+      } else if (result.status === 'needs_second_factor') {
         setCurrentView('two-factor');
       }
     } catch (err: any) {
@@ -109,7 +110,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!signUpLoaded) return;
+    if (!signUpLoaded || !signUp) return;
     
     setIsLoading(true);
     setError('');
@@ -135,14 +136,29 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
       });
 
       if (result.status === 'complete') {
+        // Account ready – sign them in directly
+        if (signIn) {
+          await signIn.create({ identifier: signupForm.email, password: signupForm.password });
+        }
         onSuccess();
         setSignupForm({ name: '', email: '', password: '', confirmPassword: '' });
-      } else if (result.status === 'needs_email_verification') {
-        setSuccessMessage('Please check your email to verify your account!');
+        return;
       }
+
+      // If Clerk requires email verification, start the flow
+      await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+      setCurrentView('verify-email');
+      setSuccessMessage('We emailed you a 6‑digit code. Enter it below to verify your account.');
     } catch (err: any) {
       console.error('Signup error:', err);
-      setError(err.errors?.[0]?.message || 'An unexpected error occurred during signup');
+      console.error('Full error object:', JSON.stringify(err, null, 2));
+      if (err.errors && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('An unexpected error occurred during signup. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -204,7 +220,7 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
     }
 
     try {
-      const result = await signIn.attemptFirstFactor({
+      const result = await signIn.attemptSecondFactor({
         strategy: 'totp',
         code: otpCode,
       });
@@ -304,6 +320,8 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                 {currentView === 'signup' && 'Start building better habits today'}
                 {currentView === 'forgot-password' && 'Enter your email to reset your password'}
                 {currentView === 'two-factor' && 'Enter the 6-digit code sent to your email'}
+                {currentView === 'verify-email' && 'Enter the verification code sent to your email'}
+                {currentView === 'verify-email' && 'Enter the verification code sent to your email'}
               </p>
             </div>
           </CardHeader>
@@ -545,6 +563,31 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                     {isLoading ? 'Creating account...' : 'Create account'}
                   </Button>
 
+                  {/* Debug button - remove after testing */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={async () => {
+                      if (!signUp) {
+                        console.error('signUp is undefined');
+                        return;
+                      }
+                      console.log('Testing basic signup...');
+                      try {
+                        const result = await signUp.create({
+                          emailAddress: 'test@example.com',
+                          password: 'TestPassword123!',
+                        });
+                        console.log('Test signup result:', result);
+                      } catch (err) {
+                        console.error('Test signup error:', err);
+                      }
+                    }}
+                    className="w-full h-10 text-xs"
+                  >
+                    Test Basic Signup
+                  </Button>
+
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground">
                       Already have an account?{' '}
@@ -652,6 +695,100 @@ export function AuthScreen({ onSuccess, onBack }: AuthScreenProps) {
                     </p>
                   </div>
                 </motion.form>
+              )}
+
+              {currentView === 'verify-email' && (
+                <motion.div
+                  key="verify-email"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3 }}
+                  className="space-y-6"
+                >
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <p className="text-sm text-muted-foreground">Enter the 6‑digit code we sent to</p>
+                      <p className="font-medium">{signupForm.email}</p>
+                    </div>
+
+                    <div className="flex justify-center">
+                      <InputOTP value={verificationCode} onChange={setVerificationCode} maxLength={6}>
+                        <InputOTPGroup>
+                          <InputOTPSlot index={0} className="w-12 h-12" />
+                          <InputOTPSlot index={1} className="w-12 h-12" />
+                          <InputOTPSlot index={2} className="w-12 h-12" />
+                          <InputOTPSlot index={3} className="w-12 h-12" />
+                          <InputOTPSlot index={4} className="w-12 h-12" />
+                          <InputOTPSlot index={5} className="w-12 h-12" />
+                        </InputOTPGroup>
+                      </InputOTP>
+                    </div>
+                  </div>
+
+                  <Button
+                    type="button"
+                    onClick={async () => {
+                      if (!verificationCode || verificationCode.length !== 6 || !signUp || !signIn) return;
+                      setIsLoading(true);
+                      setError('');
+                      try {
+                        const res = await signUp.attemptEmailAddressVerification({ code: verificationCode });
+                        if (res.status === 'complete') {
+                          await signIn.create({ identifier: signupForm.email, password: signupForm.password });
+                          onSuccess();
+                        } else {
+                          setError('Verification failed. Please try again.');
+                        }
+                      } catch (err: any) {
+                        console.error('Email verification error:', err);
+                        if (err.errors && err.errors.length > 0) {
+                          setError(err.errors[0].message);
+                        } else if (err.message) {
+                          setError(err.message);
+                        } else {
+                          setError('An unexpected error occurred during verification');
+                        }
+                      } finally {
+                        setIsLoading(false);
+                      }
+                    }}
+                    disabled={isLoading || verificationCode.length !== 6 || !signUp || !signIn}
+                    className="w-full h-12 bg-gradient-to-r from-primary to-secondary hover:opacity-90 text-white font-medium"
+                  >
+                    {isLoading ? 'Verifying...' : 'Verify email'}
+                  </Button>
+
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Didn't receive a code?{' '}
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={async () => {
+                          if (!signUp) return;
+                          try {
+                            await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+                            setSuccessMessage('Code resent. Check your inbox.');
+                          } catch (err: any) {
+                            console.error('Resend verification error:', err);
+                            if (err.errors && err.errors.length > 0) {
+                              setError(err.errors[0].message);
+                            } else if (err.message) {
+                              setError(err.message);
+                            } else {
+                              setError('Failed to resend code');
+                            }
+                          }
+                        }}
+                        disabled={!signUp}
+                        className="p-0 h-auto text-primary hover:text-primary/80"
+                      >
+                        Resend
+                      </Button>
+                    </p>
+                  </div>
+                </motion.div>
               )}
             </AnimatePresence>
 

@@ -16,6 +16,11 @@ export interface Habit {
   userId: string;
   // Legacy support for existing components
   streak: number;
+  // New fields for iterative completion
+  targetQuantity?: number;
+  currentQuantity?: number;
+  unit?: string;
+  isQuantifiable?: boolean;
 }
 
 class HabitService {
@@ -125,6 +130,44 @@ class HabitService {
       return { total: habits.length };
     } catch (error) {
       console.error('Analytics error:', error);
+      throw error;
+    }
+  }
+
+  async updateHabitQuantity(habitId: string, currentQuantity: number): Promise<Habit> {
+    try {
+      const session = await this.getCurrentSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const result = await this.fetchJSON(`/api/habits/${habitId}/quantity`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentQuantity })
+      });
+      return result.habit;
+    } catch (error) {
+      console.error('Update habit quantity error:', error);
+      throw error;
+    }
+  }
+
+  async incrementHabitQuantity(habitId: string, increment: number = 1): Promise<Habit> {
+    try {
+      const session = await this.getCurrentSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const result = await this.fetchJSON(`/api/habits/${habitId}/increment`, { 
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ increment })
+      });
+      return result.habit;
+    } catch (error) {
+      console.error('Increment habit quantity error:', error);
       throw error;
     }
   }
