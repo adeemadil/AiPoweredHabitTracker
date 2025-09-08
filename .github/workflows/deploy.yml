@@ -2,9 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main, dev]
+    branches: [main, rewrite/v2]
   pull_request:
-    branches: [main, dev]
+    branches: [main, rewrite/v2]
 
 jobs:
   build-and-test:
@@ -31,6 +31,9 @@ jobs:
       - name: Lint code
         run: npm run lint
 
+      - name: TypeScript compile
+        run: npx tsc --noEmit --skipLibCheck
+
       - name: Check code formatting
         run: npm run format -- --check
 
@@ -45,7 +48,7 @@ jobs:
         id: changes
         run: |
           git fetch origin ${{ github.base_ref }} --depth=1
-          if git diff --quiet origin/${{ github.base_ref }} HEAD -- ./components/ui ./lib; then
+          if git diff --quiet origin/${{ github.base_ref }} HEAD -- ./components/ui ./lib ./utils; then
             echo "changed=false" >> $GITHUB_OUTPUT
           else
             echo "changed=true" >> $GITHUB_OUTPUT

@@ -1,43 +1,53 @@
 "use client";
-import React from "react";
 
-interface AvatarProps {
-  emailOrName: string;
-  size?: number;
-  className?: string;
-  ariaLabel?: string;
-}
+import * as React from "react";
+import * as AvatarPrimitive from "@radix-ui/react-avatar";
 
-function getAvatarProps(emailOrName: string) {
-  const initials = emailOrName
-    .split("@")[0]
-    .split(/[._-]/)
-    .map((s) => s[0]?.toUpperCase() || "")
-    .join("")
-    .slice(0, 2);
-  const color = `hsl(${(emailOrName.length * 37) % 360}, 70%, 60%)`;
-  return { initials, color };
-}
+import { cn } from "./utils";
 
-export function Avatar({
-  emailOrName,
-  size = 36,
-  className = "",
-  ariaLabel,
-}: AvatarProps) {
-  const { initials, color } = getAvatarProps(emailOrName);
+function Avatar({
+  className,
+  ...props
+}: React.ComponentProps<typeof AvatarPrimitive.Root>) {
   return (
-    <span
-      className={`inline-flex items-center justify-center rounded-full font-bold text-white ${className}`}
-      style={{
-        background: color,
-        width: size,
-        height: size,
-        fontSize: size * 0.5,
-      }}
-      aria-label={ariaLabel || `Avatar for ${emailOrName}`}
-    >
-      {initials}
-    </span>
+    <AvatarPrimitive.Root
+      data-slot="avatar"
+      className={cn(
+        "relative flex size-10 shrink-0 overflow-hidden rounded-full",
+        className,
+      )}
+      {...props}
+    />
   );
 }
+
+function AvatarImage({
+  className,
+  ...props
+}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+  return (
+    <AvatarPrimitive.Image
+      data-slot="avatar-image"
+      className={cn("aspect-square size-full", className)}
+      {...props}
+    />
+  );
+}
+
+function AvatarFallback({
+  className,
+  ...props
+}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+  return (
+    <AvatarPrimitive.Fallback
+      data-slot="avatar-fallback"
+      className={cn(
+        "bg-muted flex size-full items-center justify-center rounded-full",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+export { Avatar, AvatarImage, AvatarFallback };
